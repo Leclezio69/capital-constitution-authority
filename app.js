@@ -209,6 +209,13 @@ function trHide() { trBar.classList.remove('active'); trActive = false; trWords.
 
 // ── narration engine with transcript ──
 let autoNarrate = false, lastNarratedView = '', narrating = false, activeAudio = null, narGeneration = 0, narAbort = null, activeUtterance = null;
+
+function updateNarrateButton() {
+  const btn = $('#narrate-btn');
+  if (narrating) { btn.textContent = '■ STOP'; btn.classList.add('playing'); }
+  else { btn.textContent = '▶ NARRATE'; btn.classList.remove('playing'); }
+}
+
 function stopNarration() {
   narGeneration++;
   if ('speechSynthesis' in window) speechSynthesis.cancel();
@@ -216,52 +223,54 @@ function stopNarration() {
   clearTimeout(trAnimFrame);
   if (narAbort) { try { narAbort.abort(); } catch (_) {} narAbort = null; }
   if (activeAudio) { try { activeAudio.pause(); activeAudio.currentTime = 0; activeAudio.src = ''; } catch (_) {} activeAudio = null; }
-  narrating = false; trHide();
+  narrating = false; trHide(); updateNarrateButton();
 }
+
 function narrateText(text, cb) {
-  stopNarration(); narrating = true;
+  stopNarration(); narrating = true; updateNarrateButton();
   const gen = narGeneration;
   const words = text.split(/\s+/).filter(w => w.length > 0);
   trShow(words);
+
+  // start browser speech immediately for zero latency
+  if ('speechSynthesis' in window) {
+    speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(text); u.rate = 0.88; u.pitch = 0.86;
+    activeUtterance = u;
+    let wordIdx = 0;
+    u.onboundary = e => { if (gen !== narGeneration) { speechSynthesis.cancel(); return; } if (e.name === 'word') { trHighlight(wordIdx); wordIdx++; } };
+    u.onend = () => { if (gen !== narGeneration) return; narrating = false; activeUtterance = null; updateNarrateButton(); if (cb) cb(); setTimeout(trHide, 1200); };
+    u.onerror = () => { if (gen !== narGeneration) return; narrating = false; activeUtterance = null; updateNarrateButton(); trHide(); };
+    speechSynthesis.speak(u);
+  }
+
+  // fetch ElevenLabs in background — if it arrives, swap over
   narAbort = new AbortController();
   fetch('/api/narrate', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ text }), signal: narAbort.signal })
     .then(res => { if (!res.ok) throw new Error(); return res.blob(); })
     .then(blob => {
       if (gen !== narGeneration) return;
+      // stop browser speech and switch to ElevenLabs voice
+      if ('speechSynthesis' in window) speechSynthesis.cancel();
+      activeUtterance = null;
       const audio = new Audio(URL.createObjectURL(blob));
       activeAudio = audio;
       const duration = words.length * 0.28;
+      trShow(words); // reset transcript position
       audio.onplay = () => {
         let i = 0;
         const step = () => {
-          if (gen !== narGeneration || !trActive || i >= words.length) { if (gen === narGeneration) { narrating = false; activeAudio = null; setTimeout(trHide, 800); } return; }
+          if (gen !== narGeneration || !trActive || i >= words.length) { if (gen === narGeneration) { narrating = false; activeAudio = null; updateNarrateButton(); setTimeout(trHide, 800); } return; }
           trHighlight(i); i++;
           const interval = (audio.duration || duration) / words.length * 1000;
           trAnimFrame = setTimeout(step, interval);
         }; step();
       };
-      audio.onended = () => { if (gen !== narGeneration) return; clearTimeout(trAnimFrame); narrating = false; activeAudio = null; if (cb) cb(); setTimeout(trHide, 1200); };
-      audio.onerror = () => { if (gen !== narGeneration) return; narrating = false; activeAudio = null; trHide(); narrateBrowser(text, words, cb, gen); };
-      audio.play().catch(() => { if (gen !== narGeneration) return; narrating = false; activeAudio = null; trHide(); });
+      audio.onended = () => { if (gen !== narGeneration) return; clearTimeout(trAnimFrame); narrating = false; activeAudio = null; updateNarrateButton(); if (cb) cb(); setTimeout(trHide, 1200); };
+      audio.onerror = () => { if (gen !== narGeneration) return; /* browser speech already playing or finished, just clean up */ narrating = false; activeAudio = null; updateNarrateButton(); };
+      audio.play().catch(() => { if (gen !== narGeneration) return; /* browser speech continues */ });
     })
-    .catch(e => { if (gen !== narGeneration || e.name === 'AbortError') return; narrating = false; narrateBrowser(text, words, cb, gen); });
-}
-function narrateBrowser(text, words, cb, gen) {
-  if (gen === undefined) gen = narGeneration;
-  if (!('speechSynthesis' in window) || gen !== narGeneration) { trHide(); return; }
-  speechSynthesis.cancel();
-  setTimeout(() => {
-    if (gen !== narGeneration) return;
-    narrating = true; trShow(words);
-    const u = new SpeechSynthesisUtterance(text); u.rate = 0.88; u.pitch = 0.86;
-    activeUtterance = u;
-    let wordIdx = 0;
-    u.onboundary = e => { if (gen !== narGeneration) { speechSynthesis.cancel(); return; } if (e.name === 'word') { trHighlight(wordIdx); wordIdx++; } };
-    u.onend = () => { if (gen !== narGeneration) return; narrating = false; activeUtterance = null; if (cb) cb(); setTimeout(trHide, 1200); };
-    u.onerror = () => { if (gen !== narGeneration) return; narrating = false; activeUtterance = null; trHide(); };
-    speechSynthesis.speak(u);
-    showToast('Browser narration active · configure ElevenLabs for your cloned voice');
-  }, 50);
+    .catch(() => { /* browser speech already active as primary — no action needed */ });
 }
 const VIEW_NARRATION = {
   command: 'Welcome to Capital Constitution. This is a live demo of the economic authority layer for enterprise AI. You are looking at the command centre for Meridian Global, a fictional institution running five AI workloads. The portfolio is inside its annual budget ceiling but outside its economic constitution — three workloads are consuming capital without sufficient verified value. Use the three executive orders on screen to contain margin leakage, preserve verified value, and return expired authority to accountable executives. You can issue the orders, ask the Capital Chief of Staff for strategic advice, or navigate to Contracts, Market, Shock Lab, and Evidence using the rail on the left.',
@@ -441,7 +450,6 @@ function bindEvents() {
     $('#chiefQuestion').focus();
   }));
 
-  $('#hearBrief').addEventListener('click', () => narrateView(state.currentView));
   $('#speakLast').addEventListener('click', () => narrate(state.lastChiefAnswer || $('.message.assistant p').textContent));
 
   // narrate toggle: click while playing stops, otherwise starts
