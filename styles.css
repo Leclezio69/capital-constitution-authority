@@ -47,6 +47,13 @@ button,input,textarea{font:inherit}.noise{position:fixed;inset:0;pointer-events:
 .auction-card.funded{border-left:2px solid var(--good)}
 .auction-card.rejected-decision{border-left:2px solid var(--bad);opacity:.55}
 .auction-sealed .decision button{pointer-events:none;opacity:.5}
+/* shock lab hints */
+.range-hint{font:600 7px/1 ui-monospace,monospace;letter-spacing:.06em;margin-left:8px;padding:2px 6px;border-radius:2px}
+.range-hint.hint-good{color:var(--good);background:rgba(120,216,174,.1)}
+.range-hint.hint-warn{color:var(--warn);background:rgba(239,183,93,.1)}
+.range-hint.hint-bad{color:var(--bad);background:rgba(240,116,116,.1)}
+.scenario-verdict{padding:14px 0 4px;border-top:1px solid var(--line);margin-top:4px;font:400 10px/1.55 ui-monospace,monospace;color:var(--muted)}
+.scenario-verdict b{display:block;font-size:8px;letter-spacing:.12em;margin-bottom:6px}
 /* draft contract seal */
 .state.draft{color:var(--accent)}
 /* pulse animation for CTA buttons */

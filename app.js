@@ -534,6 +534,36 @@ function calculateScenario() {
   $('#breachLabel').setAttribute('x', Math.min(860, x + 12));
   $('#breachLabel').textContent = `BREACH AT ${(breachUsers / 1000).toFixed(0)}K USERS`;
 
+  // slider health hints
+  function setHint(id, text, level) {
+    const el = $(`#${id}`);
+    if (!el) return;
+    el.textContent = text;
+    el.className = `range-hint hint-${level}`;
+  }
+  setHint('usersHint', users <= 50000 ? 'manageable' : users <= 100000 ? 'scaling fast' : 'high burn risk', users <= 50000 ? 'good' : users <= 100000 ? 'warn' : 'bad');
+  setHint('interactionsHint', interactions <= 20 ? 'normal' : interactions <= 40 ? 'heavy usage' : 'extreme cost', interactions <= 20 ? 'good' : interactions <= 40 ? 'warn' : 'bad');
+  setHint('premiumHint', premium * 100 <= 35 ? 'within contract' : premium * 100 <= 60 ? 'above limit' : 'severe overrun', premium * 100 <= 35 ? 'good' : premium * 100 <= 60 ? 'warn' : 'bad');
+  setHint('retryHint', retry * 100 <= 10 ? 'healthy' : retry * 100 <= 20 ? 'leaking cost' : 'loop failure', retry * 100 <= 10 ? 'good' : retry * 100 <= 20 ? 'warn' : 'bad');
+  setHint('priceHint', price >= 35 ? 'strong margin' : price >= 20 ? 'tight margin' : 'below cost', price >= 35 ? 'good' : price >= 20 ? 'warn' : 'bad');
+  setHint('reviewHint', reviewMinutes <= 3 ? 'efficient' : reviewMinutes <= 6 ? 'adding cost' : 'human bottleneck', reviewMinutes <= 3 ? 'good' : reviewMinutes <= 6 ? 'warn' : 'bad');
+
+  // scenario verdict
+  const verdict = $('#scenarioVerdict');
+  if (verdict) {
+    const issues = [];
+    if (premium * 100 > 35) issues.push(`Premium model share (${Math.round(premium * 100)}%) exceeds the contract limit of 35%`);
+    if (retry * 100 > 10) issues.push(`Retry rate (${Math.round(retry * 100)}%) is burning cost without resolving cases`);
+    if (price < 20) issues.push(`Price ($${price}/user) is below the economic floor for this workload`);
+    if (reviewMinutes > 6) issues.push(`Human review (${reviewMinutes.toFixed(1)} min) is creating an operational bottleneck`);
+    if (margin < 0) issues.push(`Margin is negative — this workload is losing $${Math.abs(monthlyProfit / 1000).toFixed(0)}k/month`);
+    if (issues.length === 0) {
+      verdict.innerHTML = '<b style="color:var(--good)">SCENARIO HEALTHY</b>All parameters are within approved boundaries. This scenario is economically sustainable.';
+    } else {
+      verdict.innerHTML = `<b style="color:${margin < 0 ? 'var(--bad)' : 'var(--warn)'}">SCENARIO HAS ${issues.length} ISSUE${issues.length > 1 ? 'S' : ''}</b>${issues.join('. ')}.${margin < 0 ? ' Click Apply Cure to see the recommended fix.' : ' Adjust sliders to explore tradeoffs.'}`;
+    }
+  }
+
   return { users, interactions, premium, retry, price, reviewMinutes, revenue, totalCost, margin, recommendedPremium, curedMargin };
 }
 

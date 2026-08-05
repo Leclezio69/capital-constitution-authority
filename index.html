@@ -332,12 +332,13 @@
         <div class="shock-layout">
           <article class="scenario-controls panel">
             <div class="panel-heading compact"><div><span>SCENARIO CONTROLS</span><h3>RESEARCH COPILOT</h3></div><button class="micro-button" id="resetScenario">RESET</button></div>
-            <label class="range-control"><div><span>MONTHLY ACTIVE USERS</span><b id="usersValue">42,000</b></div><input id="usersRange" type="range" min="10000" max="150000" step="1000" value="42000"></label>
-            <label class="range-control"><div><span>AI INTERACTIONS / USER</span><b id="interactionsValue">18</b></div><input id="interactionsRange" type="range" min="4" max="80" step="1" value="18"></label>
-            <label class="range-control"><div><span>PREMIUM MODEL SHARE</span><b id="premiumValue">54%</b></div><input id="premiumRange" type="range" min="0" max="100" step="1" value="54"></label>
-            <label class="range-control"><div><span>RETRY / REWORK RATE</span><b id="retryValue">16%</b></div><input id="retryRange" type="range" min="0" max="50" step="1" value="16"></label>
-            <label class="range-control"><div><span>PRICE PER USER / MONTH</span><b id="priceValue">$29</b></div><input id="priceRange" type="range" min="5" max="100" step="1" value="29"></label>
-            <label class="range-control"><div><span>HUMAN REVIEW MINUTES</span><b id="reviewValue">4.5</b></div><input id="reviewRange" type="range" min="0" max="20" step="0.5" value="4.5"></label>
+            <label class="range-control"><div><span>MONTHLY ACTIVE USERS</span><b id="usersValue">42,000</b><small class="range-hint" id="usersHint"></small></div><input id="usersRange" type="range" min="10000" max="150000" step="1000" value="42000"></label>
+            <label class="range-control"><div><span>AI INTERACTIONS / USER</span><b id="interactionsValue">18</b><small class="range-hint" id="interactionsHint"></small></div><input id="interactionsRange" type="range" min="4" max="80" step="1" value="18"></label>
+            <label class="range-control"><div><span>PREMIUM MODEL SHARE</span><b id="premiumValue">54%</b><small class="range-hint" id="premiumHint"></small></div><input id="premiumRange" type="range" min="0" max="100" step="1" value="54"></label>
+            <label class="range-control"><div><span>RETRY / REWORK RATE</span><b id="retryValue">16%</b><small class="range-hint" id="retryHint"></small></div><input id="retryRange" type="range" min="0" max="50" step="1" value="16"></label>
+            <label class="range-control"><div><span>PRICE PER USER / MONTH</span><b id="priceValue">$29</b><small class="range-hint" id="priceHint"></small></div><input id="priceRange" type="range" min="5" max="100" step="1" value="29"></label>
+            <label class="range-control"><div><span>HUMAN REVIEW MINUTES</span><b id="reviewValue">4.5</b><small class="range-hint" id="reviewHint"></small></div><input id="reviewRange" type="range" min="0" max="20" step="0.5" value="4.5"></label>
+            <div class="scenario-verdict" id="scenarioVerdict"></div>
           </article>
 
           <article class="scenario-output panel">
