@@ -7,9 +7,7 @@
     }
   },
   "rewrites": [
-    { "source": "/institution/meridian/:view", "destination": "/index.html" },
-    { "source": "/institution/:path", "destination": "/index.html" },
-    { "source": "/command/:path", "destination": "/index.html" }
+    { "source": "/:path*", "destination": "/index.html" }
   ],
   "headers": [
     {
