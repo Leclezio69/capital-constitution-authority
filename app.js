@@ -792,7 +792,90 @@ function bindEvents() {
     ].filter(Boolean).join('. ');
     openChief(summary ? `These contracts need attention: ${summary}. What is the priority order and what action should I take on each?` : 'All contracts are compliant. Should I adjust any terms, tighten quality floors, or prepare for the next review cycle?');
   });
-  $('#testRecord').addEventListener('click', () => openChief('Test whether the current evidence record is board-defensible. Identify the strongest record, the weakest record, and the first question a regulator would ask.'));
+  $('#testRecord').addEventListener('click', () => {
+    // build evidence summary for the AI
+    const receipts = Object.values(state.receipts);
+    const receiptSummary = receipts.map((r, i) => `${i + 1}. [${r.hash}] ${r.title}: ${r.summary}`).join('\n');
+    const contractStates = Object.values(state.contracts).map(c => `${c.title}: ${c.seal}`).join(', ');
+    const prompt = `TEST THE EVIDENCE RECORD FOR BOARD DEFENSIBILITY.
+
+CURRENT EVIDENCE RECEIPTS (${receipts.length} total):
+${receiptSummary || 'No evidence receipts have been recorded yet.'}
+
+CURRENT CONTRACT STATES: ${contractStates}
+ORDERS ISSUED: ${state.ordersIssued ? 'Yes' : 'No'}
+AUCTION SEALED: ${state.auctionSealed ? 'Yes' : 'No'}
+
+REQUIRED RESPONSE STRUCTURE:
+## Defensibility Verdict
+State whether the record is board-defensible or not, and give a confidence score out of 100.
+
+## Strongest Record
+Identify the single strongest evidence receipt and explain why it would survive regulatory scrutiny.
+
+## Weakest Record
+Identify the weakest point in the evidence trail — what is missing, incomplete, or would not survive challenge.
+
+## First Regulator Question
+State the exact question a financial regulator would ask first when reviewing this record.
+
+## Remediation Plan
+Provide 3-5 specific actions to close the gaps identified above. Each action should have an owner, a deadline, and a measurable outcome.
+
+## Lessons Learned
+Document the key governance lessons from this session that should be applied to future AI capital decisions. Frame these as reusable institutional principles — like a flight simulator debrief — so the same methodology can be trained and repeated.
+
+## Simulation Score
+Rate the overall governance quality of this session from A (board-ready) to F (indefensible). Explain the grade.`;
+    openChief(prompt);
+  });
+
+  $('#saveLessons').addEventListener('click', () => {
+    if (!state.lastChiefAnswer) { showToast('Run "Test Defensibility" first to generate lessons'); return; }
+    // save the last chief answer as an evidence receipt and export as PDF
+    const receiptId = Object.keys(state.receipts).length + 1;
+    const hash = Math.random().toString(16).slice(2, 6).toUpperCase() + ':' + Math.random().toString(16).slice(2, 6).toUpperCase();
+    state.receipts[receiptId] = {
+      hash,
+      title: 'Defensibility test — lessons learned',
+      summary: 'Board defensibility assessment with remediation plan, lessons learned, and simulation score.',
+      cells: [
+        ['AUTHORITY', 'Capital Chief Officer', 'AI-assisted governance assessment.'],
+        ['EVIDENCE', 'Full evidence chain review', 'All receipts and contract states analysed.'],
+        ['ACTION', 'Lessons documented', 'Remediation plan and reusable principles recorded.'],
+        ['RISK ACCEPTED', 'Assessment is advisory', 'Final defensibility depends on external audit.'],
+        ['QUALITY BOUNDARY', 'GPT-5.6-luna analysis', 'Grounded in portfolio context provided.'],
+        ['RECONSIDERATION', 'Next governance cycle', 'Re-test after remediation actions are completed.']
+      ]
+    };
+    // export the lessons as a styled PDF
+    const now = new Date();
+    const dateStr = now.toLocaleDateString('en-US', { day: '2-digit', month: 'long', year: 'numeric' });
+    const lessonsHtml = renderMarkdown(`# Governance Lessons Learned\n\n> **Meridian Global** · Capital Constitution Simulation Debrief\n> ${dateStr} · Board Confidential\n\n---\n\n${state.lastChiefAnswer}`);
+    const printWindow = window.open('', '_blank');
+    printWindow.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>Lessons Learned — Meridian Global</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+body{font-family:Inter,system-ui,sans-serif;color:#17191d;max-width:820px;margin:40px auto;padding:0 32px;line-height:1.7;font-size:13px}
+h1{font-size:28px;font-weight:700;letter-spacing:-.02em;border-bottom:3px solid #17191d;padding-bottom:12px;margin-bottom:8px}
+h2{font-size:16px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:#9d6e16;margin-top:36px;margin-bottom:12px;border-bottom:1px solid #c8c5bd;padding-bottom:6px}
+h3{font-size:14px;font-weight:700;margin-top:24px}
+h4{font-size:13px;font-weight:700;color:#9d6e16;text-transform:uppercase;letter-spacing:.06em;margin-top:28px;margin-bottom:8px}
+h5{font-size:12px;font-weight:600;color:#666}
+blockquote{margin:0 0 20px;padding:12px 16px;background:#f7f5ef;border-left:3px solid #9d6e16;font:400 11px/1.6 'IBM Plex Mono',monospace;color:#666}
+table{width:100%;border-collapse:collapse;margin:16px 0;font-size:11px}
+th{text-align:left;padding:8px 10px;background:#f7f5ef;border-bottom:2px solid #c8c5bd;font:600 9px/1 'IBM Plex Mono',monospace;letter-spacing:.08em;text-transform:uppercase;color:#666}
+td{padding:8px 10px;border-bottom:1px solid #e8e7e2}
+strong{font-weight:700}
+hr{border:none;border-top:1px solid #c8c5bd;margin:28px 0}
+ul{padding-left:20px}li{margin:4px 0}
+@media print{body{margin:0;padding:20px}}
+</style></head><body>${lessonsHtml}
+<script>setTimeout(()=>window.print(),400)<\/script>
+</body></html>`);
+    printWindow.document.close();
+    showToast('Lessons saved as evidence receipt and opened for PDF export');
+  });
 
   // ── interactive auction ──
   const AUCTION_BUDGET = 6.7;
