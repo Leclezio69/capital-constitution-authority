@@ -1,0 +1,457 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="theme-color" content="#0a0b0f" />
+  <meta name="description" content="CAPITAL//CONSTITUTION — the economic authority layer for enterprise AI." />
+  <title>CAPITAL//CONSTITUTION</title>
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <div class="boot" id="boot" aria-hidden="true">
+    <div class="boot-mark">C//C</div>
+    <div class="boot-line"><span></span></div>
+    <p>LOADING INSTITUTIONAL AUTHORITY</p>
+  </div>
+
+  <div class="noise" aria-hidden="true"></div>
+  <div class="app-shell">
+    <aside class="rail">
+      <div class="brand" title="CAPITAL//CONSTITUTION">
+        <span class="brand-glyph">C</span>
+        <span class="brand-slash">//</span>
+        <span class="brand-glyph">C</span>
+      </div>
+
+      <nav class="rail-nav" aria-label="Primary navigation">
+        <button class="nav-button active" data-view="command" aria-label="Command" title="Command">
+          <span>01</span><b>COMMAND</b>
+        </button>
+        <button class="nav-button" data-view="contracts" aria-label="Capital Contracts" title="Capital Contracts">
+          <span>02</span><b>CONTRACTS</b>
+        </button>
+        <button class="nav-button" data-view="market" aria-label="Capital Market" title="Capital Market">
+          <span>03</span><b>MARKET</b>
+        </button>
+        <button class="nav-button" data-view="shock" aria-label="Margin Shock Lab" title="Margin Shock Lab">
+          <span>04</span><b>SHOCK LAB</b>
+        </button>
+        <button class="nav-button" data-view="evidence" aria-label="Evidence Record" title="Evidence Record">
+          <span>05</span><b>EVIDENCE</b>
+        </button>
+      </nav>
+
+      <div class="rail-bottom">
+        <button id="themeToggle" class="icon-button" aria-label="Toggle appearance" title="Toggle appearance">◐</button>
+        <div class="identity-seal" title="Institution verified">
+          <span>MG</span>
+          <i></i>
+        </div>
+      </div>
+    </aside>
+
+    <main class="main-stage">
+      <header class="topbar">
+        <div class="institution">
+          <span>MERIDIAN GLOBAL</span>
+          <b>AI CAPITAL AUTHORITY</b>
+        </div>
+        <div class="topbar-center">
+          <span class="system-chip"><i></i> GOVERNOR ONLINE</span>
+          <span class="system-chip muted">POLICY v4.2</span>
+          <span class="system-chip muted" id="clock">—</span>
+        </div>
+        <div class="topbar-actions">
+          <button class="text-button" id="hearBrief">▶ HEAR BRIEF</button>
+          <button class="primary-button" id="openChief">ASK CAPITAL CHIEF</button>
+        </div>
+      </header>
+
+      <section class="view active" id="view-command" data-view-panel="command">
+        <div class="command-grid">
+          <article class="hero-ledger panel">
+            <div class="hero-topline">
+              <span>EXECUTIVE ORDER · 08/04/2026</span>
+              <span class="status-amber">3 CAPITAL BREACHES</span>
+            </div>
+            <div class="hero-copy">
+              <div>
+                <p class="eyebrow">INSTITUTIONAL CAPITAL POSITION</p>
+                <h1>Every AI dollar now requires a mandate.</h1>
+                <p class="hero-deck">The portfolio is inside its annual ceiling but outside its economic constitution. Three workloads are consuming capital without sufficient verified value.</p>
+              </div>
+              <div class="authority-score" aria-label="Authority score 82">
+                <span>AUTHORITY</span>
+                <strong>82</strong>
+                <small>/100</small>
+                <div class="score-ring"><i style="--score:82"></i></div>
+              </div>
+            </div>
+            <div class="order-strip">
+              <div>
+                <span>ORDER 01</span>
+                <b>Contain margin leakage</b>
+                <p>Reroute low-complexity research tasks; cap premium model traffic.</p>
+              </div>
+              <div>
+                <span>ORDER 02</span>
+                <b>Preserve verified value</b>
+                <p>Protect Fraud Sentinel funding from portfolio-wide cuts.</p>
+              </div>
+              <div>
+                <span>ORDER 03</span>
+                <b>Return authority</b>
+                <p>Require executive signatures on three expired capital contracts.</p>
+              </div>
+              <button id="executeOrders">ISSUE ORDERS →</button>
+            </div>
+          </article>
+
+          <article class="capital-position panel">
+            <div class="panel-heading">
+              <div><span>CAPITAL POSITION</span><h2>$38.4M</h2></div>
+              <div class="delta down">↓ 8.6% vs plan</div>
+            </div>
+            <div class="metric-grid">
+              <div><span>COMMITTED</span><b>$31.7M</b><small>82.6%</small></div>
+              <div><span>VERIFIED VALUE</span><b>$57.2M</b><small>1.49× return</small></div>
+              <div><span>AT RISK</span><b>$4.8M</b><small>12.5%</small></div>
+              <div><span>AVOIDABLE</span><b>$2.1M</b><small>identified</small></div>
+            </div>
+            <div class="capital-bar" aria-label="Capital allocation bar">
+              <span class="bar-verified" style="width:65%"></span>
+              <span class="bar-experimental" style="width:22%"></span>
+              <span class="bar-risk" style="width:13%"></span>
+            </div>
+            <div class="bar-legend">
+              <span><i class="verified"></i>Verified value</span>
+              <span><i class="experimental"></i>Conditional</span>
+              <span><i class="risk"></i>At risk</span>
+            </div>
+          </article>
+
+          <article class="margin-clock panel">
+            <div class="panel-heading compact">
+              <div><span>MARGIN CLOCK</span><h3>TIME TO BREACH</h3></div>
+              <button class="micro-button" data-jump="shock">SIMULATE</button>
+            </div>
+            <div class="clock-face">
+              <svg viewBox="0 0 220 220" role="img" aria-label="41 days until margin breach">
+                <circle cx="110" cy="110" r="88" class="clock-track"></circle>
+                <circle cx="110" cy="110" r="88" class="clock-progress"></circle>
+                <circle cx="110" cy="110" r="62" class="clock-inner"></circle>
+              </svg>
+              <div class="clock-value"><strong>41</strong><span>DAYS</span><small>Research Copilot</small></div>
+            </div>
+            <p class="clock-note">At current adoption, variable inference cost overtakes subscription contribution margin on <b>September 14</b>.</p>
+          </article>
+
+          <article class="economic-weather panel">
+            <div class="panel-heading compact">
+              <div><span>AI ECONOMIC WEATHER</span><h3>PORTFOLIO CONDITIONS</h3></div>
+              <span class="weather-index">62 / UNSTABLE</span>
+            </div>
+            <div class="weather-map" aria-hidden="true">
+              <div class="weather-contours"></div>
+              <div class="weather-front front-a"><span>MODEL PRICE</span></div>
+              <div class="weather-front front-b"><span>ADOPTION</span></div>
+              <div class="weather-front front-c"><span>REWORK</span></div>
+              <div class="weather-eye"><b>62</b><small>PRESSURE</small></div>
+            </div>
+            <div class="weather-readout">
+              <span><b>HIGH</b> demand acceleration</span>
+              <span><b>MED</b> vendor concentration</span>
+              <span><b>LOW</b> verified attribution</span>
+            </div>
+          </article>
+
+          <article class="portfolio-panel panel wide">
+            <div class="panel-heading">
+              <div><span>PORTFOLIO UNDER AUTHORITY</span><h3>CAPITAL CONTRACTS</h3></div>
+              <div class="table-actions"><button class="micro-button" data-jump="contracts">OPEN ALL CONTRACTS</button></div>
+            </div>
+            <div class="portfolio-table" role="table" aria-label="AI portfolio">
+              <div class="table-row table-head" role="row">
+                <span>WORKLOAD</span><span>OWNER</span><span>RUN-RATE</span><span>VALUE</span><span>ECONOMIC STATE</span><span>ORDER</span>
+              </div>
+              <button class="table-row" role="row" data-contract="research">
+                <span><i class="workload-mark research"></i><b>Research Copilot</b><small>Front Office</small></span>
+                <span>D. Harrison</span><span>$8.7M</span><span>0.82×</span><span><em class="state breach">BREACH</em><small>margin negative</small></span><span><b>CONTAIN</b> →</span>
+              </button>
+              <button class="table-row" role="row" data-contract="fraud">
+                <span><i class="workload-mark fraud"></i><b>Fraud Sentinel</b><small>Financial Crime</small></span>
+                <span>M. Ortega</span><span>$5.1M</span><span>3.84×</span><span><em class="state strong">VERIFIED</em><small>protect capital</small></span><span><b>SCALE</b> →</span>
+              </button>
+              <button class="table-row" role="row" data-contract="service">
+                <span><i class="workload-mark service"></i><b>Client Service Agent</b><small>Operations</small></span>
+                <span>A. Liu</span><span>$6.8M</span><span>1.12×</span><span><em class="state warning">CURE</em><small>retry leakage</small></span><span><b>RESTRUCTURE</b> →</span>
+              </button>
+              <button class="table-row" role="row" data-contract="treasury">
+                <span><i class="workload-mark treasury"></i><b>Treasury Forecasting</b><small>Finance</small></span>
+                <span>S. Patel</span><span>$3.4M</span><span>2.26×</span><span><em class="state strong">VERIFIED</em><small>within mandate</small></span><span><b>FUND</b> →</span>
+              </button>
+              <button class="table-row" role="row" data-contract="marketing">
+                <span><i class="workload-mark marketing"></i><b>Marketing Studio</b><small>Growth</small></span>
+                <span>J. Brooks</span><span>$4.3M</span><span>0.64×</span><span><em class="state expired">EXPIRED</em><small>evidence missing</small></span><span><b>FREEZE</b> →</span>
+              </button>
+            </div>
+          </article>
+
+          <article class="lineage-panel panel">
+            <div class="panel-heading compact">
+              <div><span>ECONOMIC LINEAGE</span><h3>FROM TOKEN TO VALUE</h3></div>
+              <span class="live-label">LIVE</span>
+            </div>
+            <div class="lineage-flow">
+              <div class="lineage-node"><span>REQUESTS</span><b>18.2M</b><small>+17%</small></div>
+              <i></i>
+              <div class="lineage-node"><span>AGENT ACTIONS</span><b>6.4M</b><small>35.2%</small></div>
+              <i></i>
+              <div class="lineage-node"><span>OUTCOMES</span><b>1.9M</b><small>29.7%</small></div>
+              <i></i>
+              <div class="lineage-node outcome"><span>VERIFIED VALUE</span><b>$57.2M</b><small>auditable</small></div>
+            </div>
+            <div class="lineage-alert"><b>Leak detected:</b> 11.8% of agent actions cannot be tied to a verified business outcome.</div>
+          </article>
+
+          <article class="governor-panel panel">
+            <div class="panel-heading compact">
+              <div><span>AUTONOMOUS GOVERNOR</span><h3>DELEGATED AUTHORITY</h3></div>
+              <label class="switch"><input type="checkbox" id="governorSwitch" checked><span></span></label>
+            </div>
+            <div class="authority-ladder">
+              <div class="ladder-row active"><span>L1</span><b>Observe</b><small>all workloads</small></div>
+              <div class="ladder-row active"><span>L2</span><b>Recommend</b><small>all workloads</small></div>
+              <div class="ladder-row active"><span>L3</span><b>Reroute</b><small>≤ $250k/month</small></div>
+              <div class="ladder-row"><span>L4</span><b>Suspend</b><small>human approval</small></div>
+              <div class="ladder-row"><span>L5</span><b>Reallocate</b><small>board reserved</small></div>
+            </div>
+            <button class="secondary-button" id="reviewAuthority">REVIEW AUTHORITY BOUNDARY</button>
+          </article>
+        </div>
+      </section>
+
+      <section class="view" id="view-contracts" data-view-panel="contracts">
+        <div class="section-masthead">
+          <div><span>02 · EXECUTABLE POLICY</span><h1>Capital Contracts</h1><p>A budget becomes enforceable when value, quality, authority and stop conditions are written into the transaction path.</p></div>
+          <button class="primary-button" id="newContract">+ ISSUE CONTRACT</button>
+        </div>
+        <div class="contracts-layout">
+          <div class="contract-list panel">
+            <div class="contract-list-head"><span>5 ACTIVE INSTRUMENTS</span><span>2 REQUIRE SIGNATURE</span></div>
+            <button class="contract-card active" data-contract-card="research"><div class="contract-code">CC-001</div><div><b>Research Copilot</b><small>Margin cure in force</small></div><em class="state breach">BREACH</em></button>
+            <button class="contract-card" data-contract-card="fraud"><div class="contract-code">CC-002</div><div><b>Fraud Sentinel</b><small>Capital protected</small></div><em class="state strong">VERIFIED</em></button>
+            <button class="contract-card" data-contract-card="service"><div class="contract-code">CC-003</div><div><b>Client Service Agent</b><small>Retry covenant triggered</small></div><em class="state warning">CURE</em></button>
+            <button class="contract-card" data-contract-card="treasury"><div class="contract-code">CC-004</div><div><b>Treasury Forecasting</b><small>Within all boundaries</small></div><em class="state strong">VERIFIED</em></button>
+            <button class="contract-card" data-contract-card="marketing"><div class="contract-code">CC-005</div><div><b>Marketing Studio</b><small>Attribution evidence expired</small></div><em class="state expired">EXPIRED</em></button>
+          </div>
+
+          <article class="contract-instrument panel" id="contractInstrument">
+            <div class="instrument-watermark">CAPITAL INSTRUMENT</div>
+            <div class="instrument-top">
+              <div><span id="contractCode">CC-001 · VERSION 4.2</span><h2 id="contractTitle">Research Copilot</h2><p id="contractSubtitle">Equity research drafting and analyst augmentation</p></div>
+              <div class="instrument-seal"><span id="contractSeal">BREACH</span><small>IN FORCE</small></div>
+            </div>
+            <div class="instrument-parties">
+              <div><span>CAPITAL OWNER</span><b id="contractOwner">Daniel Harrison</b><small>Front Office Technology</small></div>
+              <div><span>RISK OWNER</span><b id="contractRisk">Mara Voss</b><small>Enterprise AI Risk</small></div>
+              <div><span>AUTHORITY EXPIRES</span><b id="contractExpiry">30 SEP 2026</b><small>renewal requires evidence</small></div>
+            </div>
+            <div class="contract-clauses">
+              <div class="clause"><span>01</span><div><b>CAPITAL CEILING</b><p>The workload may consume no more than <strong id="contractCeiling">$9.0M annualized</strong> without CFO reauthorization.</p></div></div>
+              <div class="clause"><span>02</span><div><b>VALUE COVENANT</b><p>Verified value-to-cost must remain above <strong id="contractValue">1.20×</strong> on a rolling 30-day basis.</p></div></div>
+              <div class="clause"><span>03</span><div><b>QUALITY FLOOR</b><p>Analyst acceptance must remain above <strong id="contractQuality">91%</strong>; unsupported-claim rate below 1.5%.</p></div></div>
+              <div class="clause"><span>04</span><div><b>MODEL AUTHORITY</b><p>Premium-model traffic is limited to <strong id="contractModel">35%</strong>; economy routing is mandatory for routine work.</p></div></div>
+              <div class="clause triggered"><span>05</span><div><b>AUTOMATIC CURE</b><p id="contractCure">If contribution margin remains negative for 7 days, cap premium traffic at 28% and place expansion capital on hold.</p></div></div>
+              <div class="clause"><span>06</span><div><b>RETURN TO HUMAN AUTHORITY</b><p id="contractReturn">Suspension, customer repricing or quality-floor waiver requires CFO, CAIO and business-owner approval.</p></div></div>
+            </div>
+            <div class="signature-row">
+              <div><span>BUSINESS OWNER</span><b>D. HARRISON</b><small>Signed 01 Jul 2026</small></div>
+              <div><span>FINANCE AUTHORITY</span><b>ELENA MARIN</b><small>Signed 01 Jul 2026</small></div>
+              <div class="signature-alert"><span>GOVERNOR RECEIPT</span><b>4C8A:9F21</b><small>Policy fingerprint verified</small></div>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section class="view" id="view-market" data-view-panel="market">
+        <div class="section-masthead">
+          <div><span>03 · INTERNAL CAPITAL MARKET</span><h1>AI Portfolio Exchange</h1><p>Initiatives compete for capital on evidence, economic return, strategic value, reversibility and risk—not executive enthusiasm.</p></div>
+          <div class="market-budget"><span>AVAILABLE CAPITAL</span><b>$6.7M</b><small>FY26 reserve</small></div>
+        </div>
+        <div class="market-grid">
+          <article class="market-board panel">
+            <div class="panel-heading"><div><span>CAPITAL AUCTION</span><h3>RANKED ORDERS</h3></div><button class="micro-button" id="runAuction">RUN AUCTION</button></div>
+            <div class="auction-stack" id="auctionStack">
+              <div class="auction-card" data-rank="1"><span class="rank">01</span><div><b>Fraud Sentinel — Expansion</b><small>High confidence · regulatory value</small></div><div class="bid"><b>$2.4M</b><span>3.84×</span></div><em>FUND</em></div>
+              <div class="auction-card" data-rank="2"><span class="rank">02</span><div><b>Treasury Forecasting — Europe</b><small>Medium-high confidence · reversible</small></div><div class="bid"><b>$1.6M</b><span>2.26×</span></div><em>FUND</em></div>
+              <div class="auction-card" data-rank="3"><span class="rank">03</span><div><b>Research Copilot — Margin Cure</b><small>Conditional · evidence required</small></div><div class="bid"><b>$1.1M</b><span>0.82×</span></div><em>CONDITIONAL</em></div>
+              <div class="auction-card" data-rank="4"><span class="rank">04</span><div><b>Client Service Agent — Languages</b><small>Low confidence · retry leakage</small></div><div class="bid"><b>$1.3M</b><span>1.12×</span></div><em>HOLD</em></div>
+              <div class="auction-card rejected" data-rank="5"><span class="rank">05</span><div><b>Marketing Studio — Video</b><small>Attribution absent · irreversible spend</small></div><div class="bid"><b>$2.8M</b><span>0.64×</span></div><em>REJECT</em></div>
+            </div>
+          </article>
+
+          <article class="frontier-panel panel">
+            <div class="panel-heading compact"><div><span>COST–QUALITY FRONTIER</span><h3>MODEL ECONOMICS</h3></div><span class="frontier-label">OPTIMAL ROUTE</span></div>
+            <div class="frontier-chart">
+              <svg viewBox="0 0 520 330" role="img" aria-label="Cost quality frontier chart">
+                <line x1="56" y1="280" x2="485" y2="280" class="axis"></line>
+                <line x1="56" y1="280" x2="56" y2="30" class="axis"></line>
+                <path d="M72 260 C120 230, 155 218, 198 187 S275 125, 330 96 S415 58, 470 48" class="frontier-line"></path>
+                <path d="M72 260 C120 230, 155 218, 198 187 S275 125, 330 96 S415 58, 470 48 L470 280 L72 280 Z" class="frontier-fill"></path>
+                <circle cx="116" cy="229" r="8" class="model-dot economy"></circle>
+                <circle cx="225" cy="164" r="8" class="model-dot standard"></circle>
+                <circle cx="362" cy="82" r="8" class="model-dot premium"></circle>
+                <circle cx="283" cy="122" r="12" class="model-dot optimal"></circle>
+                <text x="92" y="211">ECONOMY</text><text x="202" y="145">STANDARD</text><text x="338" y="62">PREMIUM</text><text x="301" y="116" class="optimal-text">PORTFOLIO MIX</text>
+                <text x="265" y="317" class="axis-label">COST PER VERIFIED OUTCOME →</text>
+                <text transform="translate(18,220) rotate(-90)" class="axis-label">QUALITY / RISK FITNESS →</text>
+              </svg>
+            </div>
+            <div class="frontier-order"><span>ORDER</span><p>Route <b>72%</b> of requests to economy/standard models. Reserve premium inference for ambiguity, synthesis and regulated exceptions.</p></div>
+          </article>
+
+          <article class="portfolio-constitution panel wide">
+            <div class="panel-heading"><div><span>PORTFOLIO CONSTITUTION</span><h3>WHAT THE INSTITUTION WILL FUND</h3></div><span class="live-label">BOARD RATIFIED</span></div>
+            <div class="constitution-grid">
+              <div><span>I</span><b>Evidence before scale</b><p>No workload receives expansion capital until value attribution survives independent challenge.</p></div>
+              <div><span>II</span><b>Quality is a covenant</b><p>Cost reduction that breaks the approved quality or control floor is not a saving.</p></div>
+              <div><span>III</span><b>Authority must expire</b><p>Every autonomous spending mandate has an owner, limit, renewal date and return condition.</p></div>
+              <div><span>IV</span><b>Reversibility earns capital</b><p>Reversible experiments receive preference when evidence quality is uncertain.</p></div>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section class="view" id="view-shock" data-view-panel="shock">
+        <div class="section-masthead">
+          <div><span>04 · FORWARD ECONOMICS</span><h1>Margin Shock Laboratory</h1><p>Stress-test adoption, model mix, retries, pricing and quality before an AI product becomes economically irreversible.</p></div>
+          <button class="primary-button" id="saveScenario">SEAL SCENARIO</button>
+        </div>
+        <div class="shock-layout">
+          <article class="scenario-controls panel">
+            <div class="panel-heading compact"><div><span>SCENARIO CONTROLS</span><h3>RESEARCH COPILOT</h3></div><button class="micro-button" id="resetScenario">RESET</button></div>
+            <label class="range-control"><div><span>MONTHLY ACTIVE USERS</span><b id="usersValue">42,000</b></div><input id="usersRange" type="range" min="10000" max="150000" step="1000" value="42000"></label>
+            <label class="range-control"><div><span>AI INTERACTIONS / USER</span><b id="interactionsValue">18</b></div><input id="interactionsRange" type="range" min="4" max="80" step="1" value="18"></label>
+            <label class="range-control"><div><span>PREMIUM MODEL SHARE</span><b id="premiumValue">54%</b></div><input id="premiumRange" type="range" min="0" max="100" step="1" value="54"></label>
+            <label class="range-control"><div><span>RETRY / REWORK RATE</span><b id="retryValue">16%</b></div><input id="retryRange" type="range" min="0" max="50" step="1" value="16"></label>
+            <label class="range-control"><div><span>PRICE PER USER / MONTH</span><b id="priceValue">$29</b></div><input id="priceRange" type="range" min="5" max="100" step="1" value="29"></label>
+            <label class="range-control"><div><span>HUMAN REVIEW MINUTES</span><b id="reviewValue">4.5</b></div><input id="reviewRange" type="range" min="0" max="20" step="0.5" value="4.5"></label>
+          </article>
+
+          <article class="scenario-output panel">
+            <div class="scenario-state" id="scenarioState"><span>ECONOMIC STATE</span><b>MARGIN BREACH</b><small>at projected adoption</small></div>
+            <div class="scenario-number"><span>CONTRIBUTION MARGIN</span><b id="marginValue">−12.8%</b><small id="marginDelta">$157k monthly loss</small></div>
+            <div class="scenario-bars">
+              <div><span>SUBSCRIPTION REVENUE</span><b id="revenueValue">$1.22M</b><i><em id="revenueBar" style="width:78%"></em></i></div>
+              <div><span>MODEL + INFRASTRUCTURE</span><b id="modelCostValue">$0.74M</b><i><em id="modelBar" style="width:48%"></em></i></div>
+              <div><span>HUMAN REVIEW + REWORK</span><b id="reviewCostValue">$0.64M</b><i><em id="reviewBar" style="width:42%"></em></i></div>
+            </div>
+            <div class="scenario-cure">
+              <span>AUTOMATIC CURE AVAILABLE</span>
+              <h3 id="cureHeadline">Reduce premium routing to 28%</h3>
+              <p id="cureCopy">Preserves the 91% quality floor while restoring projected contribution margin to 17.4%.</p>
+              <button class="primary-button" id="applyCure">APPLY CURE TO SCENARIO</button>
+            </div>
+          </article>
+
+          <article class="shock-curve panel wide">
+            <div class="panel-heading"><div><span>MARGIN AT SCALE</span><h3>THE POINT OF ECONOMIC FAILURE</h3></div><div class="curve-legend"><span><i></i>Current route</span><span><i></i>Cured route</span></div></div>
+            <div class="curve-chart">
+              <svg viewBox="0 0 1100 360" preserveAspectRatio="none" aria-label="Margin at scale chart">
+                <line x1="60" y1="300" x2="1050" y2="300" class="axis"></line>
+                <line x1="60" y1="300" x2="60" y2="34" class="axis"></line>
+                <line x1="60" y1="170" x2="1050" y2="170" class="zero-line"></line>
+                <path id="currentCurve" d="M70 85 C300 105, 460 155, 605 205 S850 285, 1040 320" class="curve current"></path>
+                <path id="curedCurve" d="M70 92 C300 102, 500 118, 690 145 S900 172, 1040 188" class="curve cured"></path>
+                <line id="breachMarker" x1="604" y1="50" x2="604" y2="300" class="breach-marker"></line>
+                <text id="breachLabel" x="616" y="72" class="breach-text">BREACH AT 78K USERS</text>
+                <text x="70" y="334" class="axis-label">10K USERS</text><text x="990" y="334" class="axis-label">150K USERS</text>
+                <text x="12" y="178" class="axis-label">0%</text>
+              </svg>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section class="view" id="view-evidence" data-view-panel="evidence">
+        <div class="section-masthead">
+          <div><span>05 · SURVIVING RECORD</span><h1>AI Capital Evidence</h1><p>Every material economic decision survives as a board-defensible record of authority, evidence, action, risk and reconsideration.</p></div>
+          <button class="primary-button" id="exportEvidence">EXPORT BOARD RECORD</button>
+        </div>
+        <div class="evidence-layout">
+          <article class="evidence-timeline panel">
+            <div class="panel-heading"><div><span>DECISION LEDGER</span><h3>RECENT RECEIPTS</h3></div><span class="live-label">HASH CHAIN VALID</span></div>
+            <button class="receipt active" data-receipt="1"><span class="receipt-time">22:41:08</span><i></i><div><b>Premium-model cap issued</b><p>Research Copilot · Governor L3</p></div><em>4C8A:9F21</em></button>
+            <button class="receipt" data-receipt="2"><span class="receipt-time">21:15:32</span><i></i><div><b>Expansion capital protected</b><p>Fraud Sentinel · CFO authority</p></div><em>8E31:AA07</em></button>
+            <button class="receipt" data-receipt="3"><span class="receipt-time">18:02:11</span><i></i><div><b>Retry covenant triggered</b><p>Client Service Agent · automatic</p></div><em>2B74:1C90</em></button>
+            <button class="receipt" data-receipt="4"><span class="receipt-time">14:39:47</span><i></i><div><b>Attribution evidence expired</b><p>Marketing Studio · contract CC-005</p></div><em>7D19:77B4</em></button>
+            <button class="receipt" data-receipt="5"><span class="receipt-time">09:08:14</span><i></i><div><b>Portfolio auction sealed</b><p>FY26 Reserve · board mandate</p></div><em>03F2:C814</em></button>
+          </article>
+
+          <article class="receipt-detail panel" id="receiptDetail">
+            <div class="receipt-document-top"><span>DECISION RECEIPT · 4C8A:9F21</span><span>VERIFIED</span></div>
+            <h2>Premium-model cap issued</h2>
+            <p class="receipt-summary">The autonomous governor reduced premium-model routing for Research Copilot from 54% to 35% after the workload crossed its approved contribution-margin boundary.</p>
+            <div class="receipt-grid">
+              <div><span>AUTHORITY</span><b>Governor Level 3</b><p>Delegated rerouting authority up to $250k monthly impact.</p></div>
+              <div><span>EVIDENCE</span><b>30-day unit economics</b><p>Value-to-cost 0.82×; projected monthly loss $157k.</p></div>
+              <div><span>ACTION</span><b>Route mix changed</b><p>Premium 54% → 35%; standard 31% → 44%; economy 15% → 21%.</p></div>
+              <div><span>RISK ACCEPTED</span><b>Moderate latency increase</b><p>Estimated +420ms for 19% of routine interactions.</p></div>
+              <div><span>QUALITY BOUNDARY</span><b>91% acceptance floor</b><p>Automatic rollback if acceptance drops by more than 2 points.</p></div>
+              <div><span>RECONSIDERATION</span><b>7-day evidence window</b><p>Return to CFO authority if margin remains negative after cure.</p></div>
+            </div>
+            <div class="proof-strip"><span>POLICY v4.2</span><span>INPUT 91AD…E77C</span><span>OUTPUT 4C8A…9F21</span><span>CHAIN VALID</span></div>
+          </article>
+
+          <article class="board-questions panel wide">
+            <div class="panel-heading"><div><span>BOARD DEFENSIBILITY</span><h3>QUESTIONS THE RECORD CAN ANSWER</h3></div><button class="micro-button" id="testRecord">TEST THE RECORD</button></div>
+            <div class="question-grid">
+              <button data-question="Which AI risk did we knowingly accept, and where is it recorded?">Which risk did we knowingly accept?</button>
+              <button data-question="What AI expenditure was authorized, by whom, and within what boundary?">What was the institution authorized to spend?</button>
+              <button data-question="Which AI benefit disappears when rework, review and control costs are included?">Which benefit disappears under full cost?</button>
+              <button data-question="Which autonomous authority can be weakened without returning to the board?">What can a successor weaken?</button>
+            </div>
+          </article>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div class="chief-backdrop" id="chiefBackdrop"></div>
+  <aside class="chief-panel" id="chiefPanel" aria-label="Chief Capital Officer">
+    <div class="chief-head">
+      <div class="chief-avatar"><span>CCO</span><i></i></div>
+      <div><span>AI CHIEF CAPITAL OFFICER</span><b>Economic authority advisor</b></div>
+      <button id="closeChief" aria-label="Close">×</button>
+    </div>
+    <div class="chief-context">
+      <span>LIVE PORTFOLIO CONTEXT</span>
+      <div><b>$38.4M</b><small>capital</small></div>
+      <div><b>3</b><small>breaches</small></div>
+      <div><b>1.49×</b><small>verified return</small></div>
+    </div>
+    <div class="chief-thread" id="chiefThread">
+      <div class="message assistant">
+        <span>CAPITAL CHIEF</span>
+        <p>The portfolio is inside budget but outside mandate. Ask me what to fund, cut, reroute, defend or return to human authority.</p>
+      </div>
+    </div>
+    <div class="prompt-chips">
+      <button>Where can we remove $3M without breaking quality?</button>
+      <button>Which initiative should receive the next $5M?</button>
+      <button>Prepare the board explanation for the current breaches.</button>
+    </div>
+    <form class="chief-input" id="chiefForm">
+      <textarea id="chiefQuestion" rows="2" placeholder="Ask a capital question…" required></textarea>
+      <button type="submit" aria-label="Send">↑</button>
+    </form>
+    <div class="chief-foot"><span id="chiefMode">DEMO INTELLIGENCE</span><button id="speakLast">▶ SPEAK</button></div>
+  </aside>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script src="/app.js" type="module"></script>
+</body>
+</html>
