@@ -36,18 +36,23 @@ export default async function handler(req, res) {
     return;
   }
 
+  const model = process.env.OPENAI_MODEL || 'gpt-4.1';
+
   try {
-    const response = await fetch('https://api.openai.com/v1/responses', {
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        model: process.env.OPENAI_MODEL || 'gpt-5.6-luna',
-        instructions: SYSTEM_PROMPT,
-        input: `PORTFOLIO CONTEXT\n${JSON.stringify(context || {}, null, 2)}\n\nEXECUTIVE QUESTION\n${question}`,
-        store: false
+        model,
+        messages: [
+          { role: 'system', content: SYSTEM_PROMPT },
+          { role: 'user', content: `PORTFOLIO CONTEXT\n${JSON.stringify(context || {}, null, 2)}\n\nEXECUTIVE QUESTION\n${question}` }
+        ],
+        temperature: 0.7,
+        max_tokens: 2048
       })
     });
 
@@ -57,8 +62,16 @@ export default async function handler(req, res) {
     }
 
     const data = await response.json();
-    res.status(200).json({ answer: data.output_text || 'No response returned.', mode: 'live' });
+    const answer = data.choices?.[0]?.message?.content;
+    if (!answer) throw new Error('Empty response from model.');
+    res.status(200).json({ answer, mode: 'live', model });
   } catch (error) {
-    res.status(500).json({ error: error.message || 'Chief Capital Officer failed.' });
+    // fall back to demo answer instead of failing
+    const fallback = demoAnswer(question, context);
+    res.status(200).json({
+      answer: fallback,
+      mode: 'demo',
+      fallbackReason: error.message
+    });
   }
 }

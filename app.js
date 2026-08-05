@@ -181,7 +181,8 @@ async function askChief(question) {
     if (!response.ok) throw new Error(data.error || 'Chief Capital Officer failed.');
     $('.msg-body', loading).innerHTML = renderMarkdown(data.answer);
     state.lastChiefAnswer = data.answer;
-    $('#chiefMode').textContent = data.mode === 'live' ? 'GPT-5.6-LUNA · GROUNDED IN PORTFOLIO' : 'DEMO INTELLIGENCE · ADD API KEY FOR LIVE';
+    const modelLabel = data.model ? data.model.toUpperCase() : 'AI';
+    $('#chiefMode').textContent = data.mode === 'live' ? `${modelLabel} · GROUNDED IN PORTFOLIO` : data.fallbackReason ? `DEMO · ${data.fallbackReason.slice(0, 60)}` : 'DEMO INTELLIGENCE · ADD API KEY FOR LIVE';
   } catch (error) {
     const q = question.toLowerCase();
     const fallback = q.includes('cut') || q.includes('remove') || q.includes('save')
