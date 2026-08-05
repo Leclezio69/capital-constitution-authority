@@ -33,6 +33,20 @@ button,input,textarea{font:inherit}.noise{position:fixed;inset:0;pointer-events:
 .contract-actions .action-primary{background:var(--accent);color:#14110b;border-color:var(--accent)}
 .contract-actions .action-danger{border-color:var(--bad);color:var(--bad)}
 .contract-actions button:hover{opacity:.85}
+/* auction budget bar */
+.auction-budget{padding:12px 14px 0;font:600 8px/1 ui-monospace,monospace;color:var(--muted);letter-spacing:.08em}
+.budget-bar{height:6px;background:var(--line);border-radius:999px;overflow:hidden;margin-bottom:8px}
+.budget-fill{height:100%;background:var(--good);border-radius:999px;transition:width .4s ease,background .3s}
+.budget-fill.over{background:var(--bad)}
+.budget-label{display:flex;justify-content:space-between}
+/* auction decision buttons */
+.auction-card .decision{display:flex;gap:4px}
+.auction-card .decision button{border:1px solid var(--line);background:transparent;color:var(--muted);font:700 7px/1 ui-monospace,monospace;letter-spacing:.08em;padding:6px 10px;cursor:pointer;border-radius:2px;transition:.2s}
+.auction-card .decision button.active-fund{background:var(--good);color:#111;border-color:var(--good)}
+.auction-card .decision button.active-reject{background:var(--bad);color:#fff;border-color:var(--bad)}
+.auction-card.funded{border-left:2px solid var(--good)}
+.auction-card.rejected-decision{border-left:2px solid var(--bad);opacity:.55}
+.auction-sealed .decision button{pointer-events:none;opacity:.5}
 /* draft contract seal */
 .state.draft{color:var(--accent)}
 /* pulse animation for CTA buttons */

@@ -284,14 +284,12 @@
         </div>
         <div class="market-grid">
           <article class="market-board panel">
-            <div class="panel-heading"><div><span>CAPITAL AUCTION</span><h3>RANKED ORDERS</h3></div><button class="micro-button" id="runAuction">RUN AUCTION</button></div>
-            <div class="auction-stack" id="auctionStack">
-              <div class="auction-card" data-rank="1"><span class="rank">01</span><div><b>Fraud Sentinel — Expansion</b><small>High confidence · regulatory value</small></div><div class="bid"><b>$2.4M</b><span>3.84×</span></div><em>FUND</em></div>
-              <div class="auction-card" data-rank="2"><span class="rank">02</span><div><b>Treasury Forecasting — Europe</b><small>Medium-high confidence · reversible</small></div><div class="bid"><b>$1.6M</b><span>2.26×</span></div><em>FUND</em></div>
-              <div class="auction-card" data-rank="3"><span class="rank">03</span><div><b>Research Copilot — Margin Cure</b><small>Conditional · evidence required</small></div><div class="bid"><b>$1.1M</b><span>0.82×</span></div><em>CONDITIONAL</em></div>
-              <div class="auction-card" data-rank="4"><span class="rank">04</span><div><b>Client Service Agent — Languages</b><small>Low confidence · retry leakage</small></div><div class="bid"><b>$1.3M</b><span>1.12×</span></div><em>HOLD</em></div>
-              <div class="auction-card rejected" data-rank="5"><span class="rank">05</span><div><b>Marketing Studio — Video</b><small>Attribution absent · irreversible spend</small></div><div class="bid"><b>$2.8M</b><span>0.64×</span></div><em>REJECT</em></div>
+            <div class="panel-heading"><div><span>CAPITAL AUCTION</span><h3>ALLOCATE $6.7M</h3></div><button class="micro-button" id="sealAuction">SEAL AUCTION</button></div>
+            <div class="auction-budget" id="auctionBudget">
+              <div class="budget-bar"><div class="budget-fill" id="budgetFill"></div></div>
+              <div class="budget-label"><span id="budgetSpent">$0.0M</span> of $6.7M allocated</div>
             </div>
+            <div class="auction-stack" id="auctionStack"></div>
           </article>
 
           <article class="frontier-panel panel">

@@ -645,47 +645,94 @@ function bindEvents() {
   });
   $('#testRecord').addEventListener('click', () => openChief('Test whether the current evidence record is board-defensible. Identify the strongest record, the weakest record, and the first question a regulator would ask.'));
 
-  $('#runAuction').addEventListener('click', () => {
-    // dynamic auction based on current contract states
-    const auctionData = [
-      { key: 'fraud', name: 'Fraud Sentinel — Expansion', bid: 2.4, vtc: 3.84, conf: 'High confidence · regulatory value' },
-      { key: 'treasury', name: 'Treasury Forecasting — Europe', bid: 1.6, vtc: 2.26, conf: 'Medium-high confidence · reversible' },
-      { key: 'research', name: 'Research Copilot — Margin Cure', bid: 1.1, vtc: 0.82, conf: 'Conditional · evidence required' },
-      { key: 'service', name: 'Client Service Agent — Languages', bid: 1.3, vtc: 1.12, conf: 'Low confidence · retry leakage' },
-      { key: 'marketing', name: 'Marketing Studio — Video', bid: 2.8, vtc: 0.64, conf: 'Attribution absent · irreversible spend' }
-    ];
-    // determine auction result based on contract seal status
-    let funded = 0, conditional = 0, held = 0;
-    const results = auctionData.map(item => {
-      const seal = state.contracts[item.key]?.seal || 'EXPIRED';
-      let result, cls = '';
-      if (seal === 'VERIFIED') { result = 'FUND'; funded += item.bid; }
-      else if (seal === 'CURE') { result = 'CONDITIONAL'; conditional += item.bid; cls = ''; }
-      else if (seal === 'BREACH') { result = 'HOLD'; held += item.bid; }
-      else if (seal === 'TERMINATED') { result = 'REMOVED'; cls = 'rejected'; }
-      else { result = 'REJECT'; cls = 'rejected'; }
-      return { ...item, result, cls };
-    });
-    // sort: FUND first, then CONDITIONAL, HOLD, REJECT, REMOVED
-    const order = { FUND: 0, CONDITIONAL: 1, HOLD: 2, REJECT: 3, REMOVED: 4 };
-    results.sort((a, b) => order[a.result] - order[b.result]);
+  // ── interactive auction ──
+  const AUCTION_BUDGET = 6.7;
+  const auctionBids = [
+    { key: 'fraud', name: 'Fraud Sentinel — Expansion', bid: 2.4, vtc: 3.84, conf: 'High confidence · regulatory value' },
+    { key: 'treasury', name: 'Treasury Forecasting — Europe', bid: 1.6, vtc: 2.26, conf: 'Medium-high confidence · reversible' },
+    { key: 'research', name: 'Research Copilot — Margin Cure', bid: 1.1, vtc: 0.82, conf: 'Conditional · evidence required' },
+    { key: 'service', name: 'Client Service Agent — Languages', bid: 1.3, vtc: 1.12, conf: 'Low confidence · retry leakage' },
+    { key: 'marketing', name: 'Marketing Studio — Video', bid: 2.8, vtc: 0.64, conf: 'Attribution absent · irreversible spend' }
+  ];
+  state.auctionDecisions = {};
+  state.auctionSealed = false;
 
+  function renderAuction() {
     const stack = $('#auctionStack');
-    stack.innerHTML = results.map((r, i) => `
-      <div class="auction-card ${r.cls}" data-rank="${i + 1}">
+    stack.innerHTML = auctionBids.map((item, i) => {
+      const decision = state.auctionDecisions[item.key] || 'undecided';
+      const seal = state.contracts[item.key]?.seal || 'EXPIRED';
+      const warning = (seal === 'BREACH' || seal === 'EXPIRED') ? ` · <span style="color:var(--bad)">${seal}</span>` : '';
+      return `<div class="auction-card ${decision === 'fund' ? 'funded' : decision === 'reject' ? 'rejected-decision' : ''}" data-auction-key="${item.key}">
         <span class="rank">${String(i + 1).padStart(2, '0')}</span>
-        <div><b>${r.name}</b><small>${r.conf}</small></div>
-        <div class="bid"><b>$${r.bid.toFixed(1)}M</b><span>${r.vtc.toFixed(2)}×</span></div>
-        <em>${r.result}</em>
-      </div>`).join('');
-
-    // animate in
-    $$('.auction-card', stack).forEach((card, i) => {
-      card.style.transform = 'translateX(-12px)';
-      card.style.opacity = '.25';
-      setTimeout(() => { card.style.transform = 'translateX(0)'; card.style.opacity = card.classList.contains('rejected') ? '.45' : '1'; }, 130 * i);
+        <div><b>${item.name}</b><small>${item.conf}${warning}</small></div>
+        <div class="bid"><b>$${item.bid.toFixed(1)}M</b><span>${item.vtc.toFixed(2)}×</span></div>
+        <div class="decision">
+          <button class="${decision === 'fund' ? 'active-fund' : ''}" data-action="fund" data-key="${item.key}">FUND</button>
+          <button class="${decision === 'reject' ? 'active-reject' : ''}" data-action="reject" data-key="${item.key}">REJECT</button>
+        </div>
+      </div>`;
+    }).join('');
+    if (state.auctionSealed) stack.classList.add('auction-sealed');
+    // bind decision buttons
+    $$('[data-action]', stack).forEach(btn => {
+      btn.addEventListener('click', () => {
+        if (state.auctionSealed) return;
+        const key = btn.dataset.key;
+        const action = btn.dataset.action;
+        // toggle: clicking same action again = undecided
+        if (state.auctionDecisions[key] === action) delete state.auctionDecisions[key];
+        else state.auctionDecisions[key] = action;
+        updateAuctionBudget();
+        renderAuction();
+      });
     });
-    showToast(`$${funded.toFixed(1)}M funded · $${conditional.toFixed(1)}M conditional · $${held.toFixed(1)}M held`);
+  }
+
+  function updateAuctionBudget() {
+    const spent = auctionBids.filter(b => state.auctionDecisions[b.key] === 'fund').reduce((s, b) => s + b.bid, 0);
+    const pct = Math.min((spent / AUCTION_BUDGET) * 100, 100);
+    const over = spent > AUCTION_BUDGET;
+    $('#budgetFill').style.width = pct + '%';
+    $('#budgetFill').classList.toggle('over', over);
+    $('#budgetSpent').textContent = `$${spent.toFixed(1)}M`;
+    if (over) $('#budgetSpent').style.color = 'var(--bad)';
+    else $('#budgetSpent').style.color = '';
+  }
+
+  renderAuction();
+  updateAuctionBudget();
+
+  $('#sealAuction').addEventListener('click', () => {
+    if (state.auctionSealed) { showToast('Auction already sealed'); return; }
+    const funded = auctionBids.filter(b => state.auctionDecisions[b.key] === 'fund');
+    const rejected = auctionBids.filter(b => state.auctionDecisions[b.key] === 'reject');
+    const undecided = auctionBids.filter(b => !state.auctionDecisions[b.key]);
+    if (undecided.length > 0) { showToast(`${undecided.length} bid${undecided.length > 1 ? 's' : ''} still undecided — fund or reject each one`); return; }
+    const spent = funded.reduce((s, b) => s + b.bid, 0);
+    if (spent > AUCTION_BUDGET) { showToast(`Over budget by $${(spent - AUCTION_BUDGET).toFixed(1)}M — reject something to fit within $${AUCTION_BUDGET}M`); return; }
+    state.auctionSealed = true;
+    $('#sealAuction').textContent = 'AUCTION SEALED ✓';
+    $('#sealAuction').style.background = 'var(--good)';
+    $('#sealAuction').style.color = '#111';
+    renderAuction();
+    // create evidence receipt
+    const receiptId = Object.keys(state.receipts).length + 1;
+    const hash = Math.random().toString(16).slice(2, 6).toUpperCase() + ':' + Math.random().toString(16).slice(2, 6).toUpperCase();
+    state.receipts[receiptId] = {
+      hash,
+      title: 'Capital auction sealed by executive',
+      summary: `$${spent.toFixed(1)}M allocated across ${funded.length} workloads. ${rejected.length} bids rejected. Remaining reserve: $${(AUCTION_BUDGET - spent).toFixed(1)}M.`,
+      cells: [
+        ['AUTHORITY', 'Executive capital authority', 'Direct allocation decision.'],
+        ['EVIDENCE', 'Portfolio contract status', `${funded.length} funded, ${rejected.length} rejected.`],
+        ['ACTION', 'Capital allocated', `$${spent.toFixed(1)}M of $${AUCTION_BUDGET}M deployed.`],
+        ['RISK ACCEPTED', 'Opportunity cost', `${rejected.map(r => r.name).join(', ')} not funded.`],
+        ['QUALITY BOUNDARY', 'Constitution rules apply', 'All funded workloads remain under contract governance.'],
+        ['RECONSIDERATION', 'Next auction cycle', 'Rejected bids may return with stronger evidence.']
+      ]
+    };
+    showToast(`Auction sealed · $${spent.toFixed(1)}M funded · $${(AUCTION_BUDGET - spent).toFixed(1)}M retained → move to Shock Lab`);
   });
 
   const rangeIds = ['usersRange','interactionsRange','premiumRange','retryRange','priceRange','reviewRange'];
