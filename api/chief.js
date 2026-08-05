@@ -36,7 +36,7 @@ export default async function handler(req, res) {
     return;
   }
 
-  const model = process.env.OPENAI_MODEL || 'gpt-4.1';
+  const model = process.env.OPENAI_MODEL || 'gpt-5.6-luna';
 
   try {
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
