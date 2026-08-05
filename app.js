@@ -198,11 +198,11 @@ async function askChief(question) {
 
 // ── instruction guide banner ──
 const GUIDE = {
-  command: { what: 'Review the institutional capital position and execute binding orders.', when: 'This is the default command view.', how: 'Read the executive order, review portfolio health, then execute capital orders or ask the Capital Chief.', next: 'Contracts — inspect each AI workload\'s executable capital contract.' },
-  contracts: { what: 'Inspect executable capital contracts for each AI workload.', when: 'After reviewing the command position.', how: 'Select a contract from the list. Review seal status, parties, clauses, cure conditions, and return authority.', next: 'Market — the capital auction and economic frontier.' },
-  market: { what: 'Run the capital auction and review the economic frontier.', when: 'After inspecting contracts.', how: 'Run the auction to allocate funding. Review the frontier chart and portfolio constitution.', next: 'Shock Lab — stress-test margin scenarios.' },
-  shock: { what: 'Stress-test margin scenarios and apply cure protocols.', when: 'After reviewing the capital market.', how: 'Adjust the scenario sliders to model margin shocks. Apply the cure to see recovery paths.', next: 'Evidence — the complete audit trail.' },
-  evidence: { what: 'Review the complete evidence record and board-grade audit trail.', when: 'After stress-testing scenarios.', how: 'Select evidence receipts to review decision records. Export the board record or ask the Capital Chief to test defensibility.', next: 'Command — return to the executive position.' }
+  command: { what: 'Click "ISSUE ORDERS" to enforce the three capital decisions.', when: 'Start here.', how: 'Read each order, then click the gold button. Click any workload row to inspect its contract.', next: 'After issuing orders → open Contracts to review the five capital instruments.' },
+  contracts: { what: 'Select each contract to review its seal, cure clause, and authority.', when: 'After issuing orders.', how: 'Click a contract card on the left. Check if it says BREACH, CURE, or VERIFIED. Use "+ Issue Contract" to draft a new one with the AI Chief.', next: 'After reviewing → open Market to run the capital auction.' },
+  market: { what: 'Click "RUN AUCTION" to allocate capital across workloads.', when: 'After reviewing contracts.', how: 'The auction ranks workloads by value-to-cost. Watch which get funded and which are rejected. Review the frontier chart.', next: 'After the auction → open Shock Lab to stress-test margin scenarios.' },
+  shock: { what: 'Drag the sliders to simulate margin shocks, then click "APPLY CURE".', when: 'After running the auction.', how: 'Move Premium Model % up to see margin collapse. Click Apply Cure to see the recommended fix. Save the scenario as evidence.', next: 'After testing → open Evidence to review the full audit trail.' },
+  evidence: { what: 'Click each evidence receipt, then export the board record.', when: 'After stress-testing.', how: 'Select receipts on the left to see decision records. Click "EXPORT BOARD RECORD" to download. Use "TEST THE RECORD" to ask the AI if it\'s defensible.', next: 'Complete → ask the Capital Chief any remaining question.' }
 };
 let currentViewId = 'command';
 function updateGuide(id) {
@@ -312,11 +312,11 @@ function narrateBrowser(text, words, cb, gen) {
   }, 50);
 }
 const VIEW_NARRATION = {
-  command: 'Welcome to Capital Constitution. This is a live demo of the economic authority layer for enterprise AI. You are looking at the command centre for Meridian Global, a fictional institution running five AI workloads. The portfolio is inside its annual budget ceiling but outside its economic constitution — three workloads are consuming capital without sufficient verified value. Use the three executive orders on screen to contain margin leakage, preserve verified value, and return expired authority to accountable executives. You can issue the orders, ask the Capital Chief of Staff for strategic advice, or navigate to Contracts, Market, Shock Lab, and Evidence using the rail on the left.',
-  contracts: 'You are now viewing the executable capital contracts. Each of the five AI workloads — Research Copilot, Fraud Sentinel, Client Service Agent, Treasury Forecasting, and Marketing Studio — operates under a binding capital contract. Select any contract from the list on the left to inspect its seal status, accountable parties, value and quality metrics, cure conditions, and return authority clauses. Contracts with a breach or expired seal require immediate executive attention.',
-  market: 'This is the capital market view. Here you can run the capital auction to allocate funding across competing workloads based on their verified value-to-cost ratios. The efficient frontier chart shows the optimal balance between quality and cost. Review the portfolio constitution to understand the four binding rules that govern every capital decision. Click Run Auction to see which workloads receive funding and which are rejected.',
-  shock: 'Welcome to the Margin Shock Lab. Use the six scenario sliders on the left to stress-test how changes in users, interaction volume, premium model routing, retry rates, pricing, and review time affect the portfolio margin. Watch the output panel update in real time. When a scenario pushes the margin into breach territory, apply the cure protocol to see the recommended recovery path and its effect on the margin curve.',
-  evidence: 'You are viewing the evidence record — the complete audit trail of every capital decision. Select any evidence receipt on the left to see the full decision record, including the authority level, evidence basis, action taken, risk accepted, quality boundary, and reconsideration terms. Use the export button to download a board-grade record, or ask the Capital Chief to test whether the evidence is defensible.'
+  command: 'Welcome to Capital Constitution — the economic authority layer for enterprise AI. You are the capital authority for Meridian Global. Five AI workloads are running, but three are consuming capital without verified value. Your first action: click Issue Orders to enforce three binding capital decisions. Then scroll down to see the portfolio table — click any workload row to inspect its contract. When you are ready, use the navigation rail on the left to move to Contracts, Market, Shock Lab, and Evidence. Each view has a specific action to complete. The guide bar at the top will tell you exactly what to do next.',
+  contracts: 'These are the five executable capital contracts. Each workload operates under a binding instrument with a seal status — Verified, Cure, Breach, or Expired. Click each contract card on the left to read its terms. Pay attention to the cure conditions and return authority clauses — these define who can override the contract and under what conditions. When you are ready, click the plus Issue Contract button to draft a new contract with the AI Capital Chief. Then move to the Market view.',
+  market: 'This is the capital market. Click Run Auction to allocate funding across the five workloads. The auction ranks each workload by its verified value-to-cost ratio and decides which receive funding, which get conditional approval, and which are rejected. Below the auction, the efficient frontier chart shows the optimal quality-cost tradeoff. Review the four rules of the portfolio constitution at the bottom, then move to the Shock Lab.',
+  shock: 'This is the Margin Shock Lab. Drag the six sliders on the left to simulate what happens when users grow, premium model traffic increases, or retry rates spike. Watch the margin number and breach state update in real time on the right. When you push the margin into breach territory, click Apply Cure to see the recommended recovery. You can also save the scenario as sealed evidence. When done, move to the Evidence view.',
+  evidence: 'This is the evidence record — every capital decision leaves an auditable receipt. Click each receipt on the left to see the full record: who authorised it, what evidence supported it, what risk was accepted, and when it must be reconsidered. Click Export Board Record to download the complete trail. Use Test The Record to ask the AI Capital Chief whether a regulator would find this defensible. This completes the demo flow.'
 };
 function narrateView(viewId) {
   const text = VIEW_NARRATION[viewId];
@@ -506,16 +506,30 @@ function bindEvents() {
   });
 
   $('#executeOrders').addEventListener('click', () => {
-    if (state.ordersIssued) return showToast('Orders already in force · receipts recorded');
+    if (state.ordersIssued) { setView('contracts'); return; }
     state.ordersIssued = true;
     $('#executeOrders').textContent = 'ORDERS IN FORCE ✓';
     $('#executeOrders').style.background = 'var(--good)';
-    showToast('Three capital orders issued · evidence receipts sealed');
+    // animate the order strip
+    $$('.order-strip > div').forEach((div, i) => {
+      div.style.transition = 'background .4s';
+      setTimeout(() => { div.style.background = 'rgba(120,216,174,.06)'; }, i * 200);
+    });
+    showToast('Three capital orders issued → review contracts next');
+    // pulse the contracts nav after a moment
+    setTimeout(() => {
+      const navBtn = $('.nav-button[data-view="contracts"]');
+      navBtn.style.transition = 'color .3s';
+      navBtn.style.color = 'var(--accent)';
+      setTimeout(() => { navBtn.style.color = ''; }, 2000);
+    }, 1500);
   });
 
   $('#governorSwitch').addEventListener('change', event => showToast(event.target.checked ? 'Autonomous governor enabled within Level 3 boundary' : 'Governor paused · recommendations remain active'));
   $('#reviewAuthority').addEventListener('click', () => openChief('Review the current autonomous authority boundary. What can the governor do, what must return to human authority, and where is the greatest control gap?'));
-  $('#newContract').addEventListener('click', () => openChief('Draft a new executable capital contract for an enterprise AI workload. List the minimum evidence, value, quality, authority and stop conditions required before funding.'));
+  $('#newContract').addEventListener('click', () => {
+    openChief('I want to issue a new capital contract for a new AI workload. Walk me through the required fields: workload name, owner, risk officer, budget ceiling, value-to-cost target, quality floor, model dependency limit, cure condition, and return authority clause. Ask me each field one at a time.');
+  });
   $('#testRecord').addEventListener('click', () => openChief('Test whether the current evidence record is board-defensible. Identify the strongest record, the weakest record, and the first question a regulator would ask.'));
 
   $('#runAuction').addEventListener('click', () => {
@@ -563,6 +577,8 @@ function init() {
   calculateScenario();
   updateGuide(state.currentView);
   setTimeout(() => $('#boot').classList.add('hide'), 900);
+  // pulse the first CTA after boot
+  setTimeout(() => { if (!state.ordersIssued) $('#executeOrders').classList.add('pulse'); }, 1800);
 }
 
 init();

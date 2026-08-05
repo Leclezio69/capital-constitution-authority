@@ -27,6 +27,9 @@ button,input,textarea{font:inherit}.noise{position:fixed;inset:0;pointer-events:
 #guide-bar::-webkit-scrollbar{display:none}
 #guide-bar.visible{opacity:1;transform:none;pointer-events:auto}
 .guide-seg{display:flex;gap:5px;align-items:center;white-space:nowrap}.guide-seg .gl{color:var(--accent);font-weight:500;text-transform:uppercase;letter-spacing:.13em}.guide-seg.gn .gl{color:var(--good)}
+/* pulse animation for CTA buttons */
+@keyframes pulse-glow{0%,100%{box-shadow:0 0 0 0 rgba(215,165,75,.4)}50%{box-shadow:0 0 0 8px rgba(215,165,75,0)}}
+.pulse{animation:pulse-glow 2s ease-in-out 3}
 /* narrate toggle */
 .narrate-toggle.playing{color:var(--bad);background:rgba(240,116,116,.12);border-bottom:2px solid var(--bad)}
 /* auto-narrate toggle */
