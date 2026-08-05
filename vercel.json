@@ -7,8 +7,9 @@
     }
   },
   "rewrites": [
-    { "source": "/institution/(.*)", "destination": "/index.html" },
-    { "source": "/command/(.*)", "destination": "/index.html" }
+    { "source": "/institution/:path*/:sub*", "destination": "/index.html" },
+    { "source": "/institution/:path*", "destination": "/index.html" },
+    { "source": "/command/:path*", "destination": "/index.html" }
   ],
   "headers": [
     {
