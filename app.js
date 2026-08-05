@@ -146,6 +146,93 @@ function addMessage(role, text, isMarkdown = false) {
   return node;
 }
 
+// ── contract builder state machine ──
+const CONTRACT_FIELDS = [
+  { key: 'title', label: 'Workload Name', prompt: 'What is the name of the new AI workload?' },
+  { key: 'subtitle', label: 'Description', prompt: 'Provide a one-line description of what this workload does.' },
+  { key: 'owner', label: 'Capital Owner', prompt: 'Who is the accountable capital owner (name and role)?' },
+  { key: 'risk', label: 'Risk Officer', prompt: 'Who is the risk officer responsible for this workload?' },
+  { key: 'ceiling', label: 'Budget Ceiling', prompt: 'What is the annualized budget ceiling (e.g. $5.0M annualized)?' },
+  { key: 'value', label: 'Value-to-Cost Target', prompt: 'What is the minimum value-to-cost ratio target (e.g. 1.50×)?' },
+  { key: 'quality', label: 'Quality Floor', prompt: 'What is the quality floor percentage (e.g. 90%)?' },
+  { key: 'model', label: 'Model Dependency Limit', prompt: 'What is the maximum premium-model dependency (e.g. 25%)?' },
+  { key: 'cure', label: 'Cure Condition', prompt: 'What should happen automatically if the workload breaches its boundaries? Describe the cure condition.' },
+  { key: 'return', label: 'Return Authority', prompt: 'What decisions must return to human authority? Who must approve exceptions?' }
+];
+let contractBuilder = null;
+
+function startContractBuilder() {
+  contractBuilder = { fields: {}, step: 0 };
+  openChief();
+  addMessage('assistant', `## New Capital Contract — CC-006\n\nI will walk you through **${CONTRACT_FIELDS.length} required fields** to issue a new executable capital contract.\n\n### Field 1 of ${CONTRACT_FIELDS.length} — ${CONTRACT_FIELDS[0].label}\n\n${CONTRACT_FIELDS[0].prompt}`, true);
+}
+
+function advanceContractBuilder(userAnswer) {
+  if (!contractBuilder) return false;
+  const field = CONTRACT_FIELDS[contractBuilder.step];
+  contractBuilder.fields[field.key] = userAnswer;
+  contractBuilder.step++;
+
+  if (contractBuilder.step < CONTRACT_FIELDS.length) {
+    const next = CONTRACT_FIELDS[contractBuilder.step];
+    const progress = contractBuilder.step + 1;
+    const filled = Object.entries(contractBuilder.fields).map(([k, v]) => {
+      const f = CONTRACT_FIELDS.find(f => f.key === k);
+      return `- **${f.label}**: ${v}`;
+    }).join('\n');
+    addMessage('assistant', `### ✓ ${field.label} recorded\n\n${filled}\n\n---\n\n### Field ${progress} of ${CONTRACT_FIELDS.length} — ${next.label}\n\n${next.prompt}`, true);
+    return true;
+  }
+
+  // all fields collected — assemble the contract
+  const draft = contractBuilder.fields;
+  const contractKey = 'custom_' + Date.now();
+  const newContract = {
+    code: 'CC-006 · VERSION 1.0',
+    title: draft.title,
+    subtitle: draft.subtitle,
+    seal: 'DRAFT',
+    owner: draft.owner,
+    risk: draft.risk,
+    expiry: new Date(Date.now() + 180 * 86400000).toLocaleDateString('en-US', { day: '2-digit', month: 'short', year: 'numeric' }).toUpperCase(),
+    ceiling: draft.ceiling,
+    value: draft.value,
+    quality: draft.quality,
+    model: draft.model,
+    cure: draft.cure,
+    return: draft.return
+  };
+  state.contracts[contractKey] = newContract;
+
+  // add card to the contract list
+  const list = $('.contract-list');
+  const card = document.createElement('button');
+  card.className = 'contract-card';
+  card.dataset.contractCard = contractKey;
+  card.innerHTML = `<div class="contract-code">CC-006</div><div><b>${draft.title}</b><small>Draft — pending signatures</small></div><em class="state" style="color:var(--accent)">DRAFT</em>`;
+  card.addEventListener('click', () => renderContract(contractKey));
+  list.appendChild(card);
+
+  // update the count
+  const head = $('.contract-list-head span');
+  if (head) head.textContent = '6 ACTIVE INSTRUMENTS';
+
+  // show completion message
+  const summary = CONTRACT_FIELDS.map(f => `| ${f.label} | ${contractBuilder.fields[f.key]} |`).join('\n');
+  addMessage('assistant', `## ✓ Contract CC-006 Issued\n\n**${draft.title}** has been added to the portfolio as a **DRAFT** instrument.\n\n| Field | Value |\n|-------|-------|\n${summary}\n\n### Next Steps\n\n- Close this panel and open **Contracts** to review the full instrument\n- The contract requires executive signatures before it moves from DRAFT to VERIFIED\n- The cure condition and return authority are now enforceable`, true);
+
+  showToast(`Contract CC-006 issued · ${draft.title} added to portfolio`);
+
+  // switch to contracts view and render the new contract
+  setTimeout(() => {
+    setView('contracts');
+    renderContract(contractKey);
+  }, 1500);
+
+  contractBuilder = null;
+  return true;
+}
+
 function portfolioContext() {
   return {
     portfolio: {
@@ -170,6 +257,10 @@ function portfolioContext() {
 
 async function askChief(question) {
   addMessage('user', question);
+  // if contract builder is active, capture the answer as a field
+  if (contractBuilder) {
+    if (advanceContractBuilder(question)) return;
+  }
   const loading = addMessage('assistant', 'Reading the portfolio record and testing the economic boundary…');
   try {
     const response = await fetch('/api/chief', {
@@ -337,8 +428,9 @@ function renderContract(key) {
   };
   Object.entries(fields).forEach(([selector, value]) => { $(selector).textContent = value; });
   const seal = $('.instrument-seal');
-  seal.style.borderColor = contract.seal === 'VERIFIED' ? 'var(--good)' : contract.seal === 'CURE' ? 'var(--warn)' : contract.seal === 'EXPIRED' ? 'var(--muted)' : 'var(--bad)';
-  $('#contractSeal').style.color = contract.seal === 'VERIFIED' ? 'var(--good)' : contract.seal === 'CURE' ? 'var(--warn)' : contract.seal === 'EXPIRED' ? 'var(--muted)' : 'var(--bad)';
+  const sealColor = contract.seal === 'VERIFIED' ? 'var(--good)' : contract.seal === 'CURE' ? 'var(--warn)' : contract.seal === 'EXPIRED' ? 'var(--muted)' : contract.seal === 'DRAFT' ? 'var(--accent)' : 'var(--bad)';
+  seal.style.borderColor = sealColor;
+  $('#contractSeal').style.color = sealColor;
   $$('.contract-card').forEach(card => card.classList.toggle('active', card.dataset.contractCard === key));
 }
 
@@ -527,9 +619,7 @@ function bindEvents() {
 
   $('#governorSwitch').addEventListener('change', event => showToast(event.target.checked ? 'Autonomous governor enabled within Level 3 boundary' : 'Governor paused · recommendations remain active'));
   $('#reviewAuthority').addEventListener('click', () => openChief('Review the current autonomous authority boundary. What can the governor do, what must return to human authority, and where is the greatest control gap?'));
-  $('#newContract').addEventListener('click', () => {
-    openChief('I want to issue a new capital contract for a new AI workload. Walk me through the required fields: workload name, owner, risk officer, budget ceiling, value-to-cost target, quality floor, model dependency limit, cure condition, and return authority clause. Ask me each field one at a time.');
-  });
+  $('#newContract').addEventListener('click', () => startContractBuilder());
   $('#testRecord').addEventListener('click', () => openChief('Test whether the current evidence record is board-defensible. Identify the strongest record, the weakest record, and the first question a regulator would ask.'));
 
   $('#runAuction').addEventListener('click', () => {
