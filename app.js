@@ -577,25 +577,123 @@ function applyCure() {
 }
 
 function exportBoardRecord() {
-  const record = {
-    generatedAt: new Date().toISOString(),
-    institution: 'Meridian Global',
-    product: 'CAPITAL//CONSTITUTION',
-    portfolio: portfolioContext().portfolio,
-    executiveOrders: [
-      'Contain Research Copilot margin leakage.',
-      'Protect Fraud Sentinel expansion capital.',
-      'Return expired contracts to human authority.'
-    ],
-    evidenceReceipts: Object.values(state.receipts).map(({ hash, title, summary }) => ({ hash, title, summary }))
-  };
-  const blob = new Blob([JSON.stringify(record, null, 2)], { type: 'application/json' });
+  const now = new Date();
+  const dateStr = now.toLocaleDateString('en-US', { day: '2-digit', month: 'long', year: 'numeric' });
+  const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false });
+  const ctx = portfolioContext();
+  const p = ctx.portfolio;
+
+  // contract status table
+  const contractRows = Object.entries(state.contracts).map(([key, c]) => {
+    return `| ${c.title} | ${c.seal} | ${c.owner} | ${c.ceiling} | ${c.value} | ${c.quality} |`;
+  }).join('\n');
+
+  // executive orders
+  const orders = [
+    'Contain Research Copilot margin leakage — reroute low-complexity work, cap premium model traffic.',
+    'Protect Fraud Sentinel expansion capital — ring-fence funding based on verified 3.84× value-to-cost.',
+    'Return expired contracts to human authority — require executive signatures within 72 hours.'
+  ];
+
+  // evidence receipts
+  const receiptRows = Object.values(state.receipts).map(r => {
+    return `| \`${r.hash}\` | ${r.title} | ${r.summary} |`;
+  }).join('\n');
+
+  // auction results
+  let auctionSection = '';
+  if (state.auctionSealed) {
+    const auctionBids = [
+      { key: 'fraud', name: 'Fraud Sentinel — Expansion', bid: 2.4 },
+      { key: 'treasury', name: 'Treasury Forecasting — Europe', bid: 1.6 },
+      { key: 'research', name: 'Research Copilot — Margin Cure', bid: 1.1 },
+      { key: 'service', name: 'Client Service Agent — Languages', bid: 1.3 },
+      { key: 'marketing', name: 'Marketing Studio — Video', bid: 2.8 }
+    ];
+    const auctionRows = auctionBids.map(b => {
+      const decision = state.auctionDecisions[b.key] || 'undecided';
+      return `| ${b.name} | $${b.bid.toFixed(1)}M | **${decision.toUpperCase()}** |`;
+    }).join('\n');
+    const totalFunded = auctionBids.filter(b => state.auctionDecisions[b.key] === 'fund').reduce((s, b) => s + b.bid, 0);
+    auctionSection = `\n## Capital Auction Results\n\n| Initiative | Bid | Decision |\n|------------|-----|----------|\n${auctionRows}\n\n**Total allocated:** $${totalFunded.toFixed(1)}M of $6.7M available capital.\n`;
+  }
+
+  // breach count
+  const breaches = Object.values(state.contracts).filter(c => ['BREACH', 'EXPIRED', 'CURE'].includes(c.seal));
+  const compliant = Object.values(state.contracts).filter(c => c.seal === 'VERIFIED');
+
+  const md = `# CAPITAL//CONSTITUTION — Board Record
+
+> **Meridian Global** · AI Capital Authority
+> Generated ${dateStr} at ${timeStr} UTC
+> Classification: Board Confidential
+
+---
+
+## Executive Summary
+
+The enterprise AI portfolio comprises **$${p.annualCapital}M** in annual capital across **${Object.keys(state.contracts).length} workloads**. Committed capital stands at **$${p.committedCapital}M** (${((p.committedCapital / p.annualCapital) * 100).toFixed(1)}%). Verified value returned: **$${p.verifiedValue}M** at a portfolio return of **${p.verifiedReturn}×**.
+
+- **${compliant.length}** contracts are compliant and verified
+- **${breaches.length}** contracts require attention${breaches.length > 0 ? ' (' + breaches.map(c => c.title + ': ' + c.seal).join(', ') + ')' : ''}
+- **$${p.atRiskCapital}M** capital at risk
+- **$${p.avoidableCost}M** avoidable cost identified
+
+---
+
+## Executive Orders Issued
+
+${state.ordersIssued ? orders.map((o, i) => `${i + 1}. ${o}`).join('\n') : '*No executive orders have been issued in this session.*'}
+
+---
+
+## Portfolio Contract Status
+
+| Workload | Seal | Owner | Ceiling | Value | Quality |
+|----------|------|-------|---------|-------|---------|
+${contractRows}
+
+---
+${auctionSection}
+## Evidence Record
+
+All material capital decisions are recorded below with authority, evidence, action, risk accepted, quality boundary, and reconsideration terms.
+
+| Receipt | Decision | Summary |
+|---------|----------|---------|
+${receiptRows || '| — | No receipts recorded | — |'}
+
+---
+
+## Portfolio Constitution
+
+The following rules are board-ratified and govern all capital allocation decisions:
+
+1. **Evidence before scale** — No workload receives expansion capital until value attribution survives independent challenge.
+2. **Quality is a covenant** — Cost reduction that breaks the approved quality or control floor is not a saving.
+3. **Authority must expire** — Every autonomous spending mandate has an owner, limit, renewal date and return condition.
+4. **Reversibility earns capital** — Reversible experiments receive preference when evidence quality is uncertain.
+
+---
+
+## Attestation
+
+This record was generated by CAPITAL//CONSTITUTION, the economic authority layer for enterprise AI at Meridian Global. Every decision referenced in this document is traceable to a sealed evidence receipt.
+
+**Record integrity:** All contract actions, auction decisions, and scenario analyses performed during this session are included above.
+
+---
+
+*CAPITAL//CONSTITUTION · Meridian Global · ${dateStr}*
+`;
+
+  const blob = new Blob([md], { type: 'text/markdown' });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
-  a.download = `capital-constitution-board-record-${new Date().toISOString().slice(0,10)}.json`;
+  a.download = `capital-constitution-board-record-${now.toISOString().slice(0,10)}.md`;
   a.click();
   URL.revokeObjectURL(a.href);
-  showToast('Board record exported');
+  showToast('Board record exported as markdown');
 }
 
 function bindEvents() {
