@@ -231,32 +231,17 @@ function narrateText(text, cb) {
   const gen = narGeneration;
   const words = text.split(/\s+/).filter(w => w.length > 0);
   trShow(words);
+  showToast('Loading voice…');
 
-  // start browser speech immediately for zero latency
-  if ('speechSynthesis' in window) {
-    speechSynthesis.cancel();
-    const u = new SpeechSynthesisUtterance(text); u.rate = 0.88; u.pitch = 0.86;
-    activeUtterance = u;
-    let wordIdx = 0;
-    u.onboundary = e => { if (gen !== narGeneration) { speechSynthesis.cancel(); return; } if (e.name === 'word') { trHighlight(wordIdx); wordIdx++; } };
-    u.onend = () => { if (gen !== narGeneration) return; narrating = false; activeUtterance = null; updateNarrateButton(); if (cb) cb(); setTimeout(trHide, 1200); };
-    u.onerror = () => { if (gen !== narGeneration) return; narrating = false; activeUtterance = null; updateNarrateButton(); trHide(); };
-    speechSynthesis.speak(u);
-  }
-
-  // fetch ElevenLabs in background — if it arrives, swap over
+  // try ElevenLabs cloned voice first
   narAbort = new AbortController();
   fetch('/api/narrate', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ text }), signal: narAbort.signal })
     .then(res => { if (!res.ok) throw new Error(); return res.blob(); })
     .then(blob => {
       if (gen !== narGeneration) return;
-      // stop browser speech and switch to ElevenLabs voice
-      if ('speechSynthesis' in window) speechSynthesis.cancel();
-      activeUtterance = null;
       const audio = new Audio(URL.createObjectURL(blob));
       activeAudio = audio;
       const duration = words.length * 0.28;
-      trShow(words); // reset transcript position
       audio.onplay = () => {
         let i = 0;
         const step = () => {
@@ -267,10 +252,31 @@ function narrateText(text, cb) {
         }; step();
       };
       audio.onended = () => { if (gen !== narGeneration) return; clearTimeout(trAnimFrame); narrating = false; activeAudio = null; updateNarrateButton(); if (cb) cb(); setTimeout(trHide, 1200); };
-      audio.onerror = () => { if (gen !== narGeneration) return; /* browser speech already playing or finished, just clean up */ narrating = false; activeAudio = null; updateNarrateButton(); };
-      audio.play().catch(() => { if (gen !== narGeneration) return; /* browser speech continues */ });
+      audio.onerror = () => { if (gen !== narGeneration) return; narrating = false; activeAudio = null; updateNarrateButton(); trHide(); narrateBrowser(text, words, cb, gen); };
+      audio.play().catch(() => { if (gen !== narGeneration) return; narrating = false; activeAudio = null; updateNarrateButton(); trHide(); });
     })
-    .catch(() => { /* browser speech already active as primary — no action needed */ });
+    .catch(e => {
+      if (gen !== narGeneration || e.name === 'AbortError') return;
+      // fallback to browser speech only if ElevenLabs fails
+      narrateBrowser(text, words, cb, gen);
+    });
+}
+function narrateBrowser(text, words, cb, gen) {
+  if (gen === undefined) gen = narGeneration;
+  if (!('speechSynthesis' in window) || gen !== narGeneration) { trHide(); narrating = false; updateNarrateButton(); return; }
+  speechSynthesis.cancel();
+  setTimeout(() => {
+    if (gen !== narGeneration) return;
+    narrating = true; updateNarrateButton(); trShow(words);
+    const u = new SpeechSynthesisUtterance(text); u.rate = 0.88; u.pitch = 0.86;
+    activeUtterance = u;
+    let wordIdx = 0;
+    u.onboundary = e => { if (gen !== narGeneration) { speechSynthesis.cancel(); return; } if (e.name === 'word') { trHighlight(wordIdx); wordIdx++; } };
+    u.onend = () => { if (gen !== narGeneration) return; narrating = false; activeUtterance = null; updateNarrateButton(); if (cb) cb(); setTimeout(trHide, 1200); };
+    u.onerror = () => { if (gen !== narGeneration) return; narrating = false; activeUtterance = null; updateNarrateButton(); trHide(); };
+    speechSynthesis.speak(u);
+    showToast('Browser narration · ElevenLabs not configured');
+  }, 50);
 }
 const VIEW_NARRATION = {
   command: 'Welcome to Capital Constitution. This is a live demo of the economic authority layer for enterprise AI. You are looking at the command centre for Meridian Global, a fictional institution running five AI workloads. The portfolio is inside its annual budget ceiling but outside its economic constitution — three workloads are consuming capital without sufficient verified value. Use the three executive orders on screen to contain margin leakage, preserve verified value, and return expired authority to accountable executives. You can issue the orders, ask the Capital Chief of Staff for strategic advice, or navigate to Contracts, Market, Shock Lab, and Evidence using the rail on the left.',
