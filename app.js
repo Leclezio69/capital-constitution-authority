@@ -103,12 +103,44 @@ function closeChief() {
   $('#chiefBackdrop').classList.remove('open');
 }
 
-function addMessage(role, text) {
+function renderMarkdown(text) {
+  let html = text
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    // tables
+    .replace(/^(\|.+\|)\n(\|[\s:|-]+\|)\n((?:\|.+\|\n?)*)/gm, (_, header, sep, body) => {
+      const th = header.split('|').filter(c => c.trim()).map(c => `<th>${c.trim()}</th>`).join('');
+      const rows = body.trim().split('\n').map(row => {
+        const cells = row.split('|').filter(c => c.trim()).map(c => `<td>${c.trim()}</td>`).join('');
+        return `<tr>${cells}</tr>`;
+      }).join('');
+      return `<table><thead><tr>${th}</tr></thead><tbody>${rows}</tbody></table>`;
+    })
+    // headings
+    .replace(/^### (.+)$/gm, '<h5>$1</h5>')
+    .replace(/^## (.+)$/gm, '<h4>$1</h4>')
+    .replace(/^# (.+)$/gm, '<h3>$1</h3>')
+    // bold and italic
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*(.+?)\*/g, '<em>$1</em>')
+    // unordered lists
+    .replace(/^- (.+)$/gm, '<li>$1</li>')
+    .replace(/((?:<li>.*<\/li>\n?)+)/g, '<ul>$1</ul>')
+    // ordered lists
+    .replace(/^\d+\. (.+)$/gm, '<li>$1</li>')
+    // paragraphs
+    .replace(/\n{2,}/g, '</p><p>')
+    .replace(/\n/g, '<br>');
+  return `<p>${html}</p>`.replace(/<p><\/p>/g, '').replace(/<p>(<h[345]>)/g, '$1').replace(/(<\/h[345]>)<\/p>/g, '$1').replace(/<p>(<table>)/g, '$1').replace(/(<\/table>)<\/p>/g, '$1').replace(/<p>(<ul>)/g, '$1').replace(/(<\/ul>)<\/p>/g, '$1');
+}
+
+function addMessage(role, text, isMarkdown = false) {
   const thread = $('#chiefThread');
   const node = document.createElement('div');
   node.className = `message ${role}`;
-  node.innerHTML = `<span>${role === 'user' ? 'YOU' : 'CAPITAL CHIEF'}</span><p></p>`;
-  $('p', node).textContent = text;
+  node.innerHTML = `<span>${role === 'user' ? 'YOU' : 'CAPITAL CHIEF'}</span><div class="msg-body"></div>`;
+  const body = $('.msg-body', node);
+  if (isMarkdown) body.innerHTML = renderMarkdown(text);
+  else body.textContent = text;
   thread.appendChild(node);
   thread.scrollTop = thread.scrollHeight;
   return node;
@@ -147,17 +179,17 @@ async function askChief(question) {
     });
     const data = await response.json();
     if (!response.ok) throw new Error(data.error || 'Chief Capital Officer failed.');
-    $('p', loading).textContent = data.answer;
+    $('.msg-body', loading).innerHTML = renderMarkdown(data.answer);
     state.lastChiefAnswer = data.answer;
-    $('#chiefMode').textContent = data.mode === 'live' ? 'LIVE MODEL · GROUNDED IN PORTFOLIO' : 'DEMO INTELLIGENCE · ADD API KEY FOR LIVE';
+    $('#chiefMode').textContent = data.mode === 'live' ? 'GPT-5.6-LUNA · GROUNDED IN PORTFOLIO' : 'DEMO INTELLIGENCE · ADD API KEY FOR LIVE';
   } catch (error) {
     const q = question.toLowerCase();
     const fallback = q.includes('cut') || q.includes('remove') || q.includes('save')
-      ? 'Recommendation: execute a staged efficiency mandate. Reroute low-complexity Research Copilot work, cap premium inference, and stop Client Service Agent retries after the second failure. Preserve Fraud Sentinel because its verified value-to-cost ratio is the strongest in the portfolio. Decision boundary: do not accept quality below 91% or a regulatory-review increase above 6%.'
+      ? '## Recommendation\n\nExecute a **staged efficiency mandate**. Reroute low-complexity Research Copilot work, cap premium inference at **28%**, and stop Client Service Agent retries after the second failure.\n\n## Preserve\n\n- **Fraud Sentinel** — verified value-to-cost ratio **3.84×**, strongest in portfolio\n\n## Decision Boundary\n\nDo not accept quality below **91%** or a regulatory-review increase above **6%**.'
       : q.includes('fund') || q.includes('receive') || q.includes('allocate')
-        ? 'Fund Fraud Sentinel expansion first, Treasury Forecasting second, and place Research Copilot under conditional margin-cure funding. Do not release Marketing Studio capital until attribution evidence is independently restored.'
-        : 'The portfolio is inside budget but outside its economic constitution. Contain the two margin-negative workloads, preserve the strongest verified control workload, and require an accountable owner to renew every expired capital contract.';
-    $('p', loading).textContent = fallback;
+        ? '## Capital Allocation\n\n- **Priority 1**: Fund Fraud Sentinel expansion (**3.84×** value-to-cost)\n- **Priority 2**: Fund Treasury Forecasting (**2.26×** value-to-cost)\n- **Priority 3**: Place Research Copilot under conditional margin-cure funding\n- **Hold**: Do not release Marketing Studio capital until attribution evidence is independently restored.'
+        : '## Portfolio Status\n\nThe portfolio is inside budget but **outside its economic constitution**.\n\n## Immediate Orders\n\n- **Contain** the two margin-negative workloads\n- **Preserve** the strongest verified control workload\n- **Require** an accountable owner to renew every expired capital contract';
+    $('.msg-body', loading).innerHTML = renderMarkdown(fallback);
     state.lastChiefAnswer = fallback;
     $('#chiefMode').textContent = 'LOCAL DEMO INTELLIGENCE · API NOT CONNECTED';
   }
@@ -456,7 +488,7 @@ function bindEvents() {
     $('#chiefQuestion').focus();
   }));
 
-  $('#speakLast').addEventListener('click', () => narrate(state.lastChiefAnswer || $('.message.assistant p').textContent));
+  $('#speakLast').addEventListener('click', () => narrate(state.lastChiefAnswer || $('.message.assistant .msg-body')?.textContent || ''));
 
   // narrate toggle: click while playing stops, otherwise starts
   $('#narrate-btn').addEventListener('click', () => {
