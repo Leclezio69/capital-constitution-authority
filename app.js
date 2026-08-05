@@ -263,12 +263,16 @@ function narrateBrowser(text, words, cb, gen) {
     showToast('Browser narration active · configure ElevenLabs for your cloned voice');
   }, 50);
 }
+const VIEW_NARRATION = {
+  command: 'Welcome to Capital Constitution. This is a live demo of the economic authority layer for enterprise AI. You are looking at the command centre for Meridian Global, a fictional institution running five AI workloads. The portfolio is inside its annual budget ceiling but outside its economic constitution — three workloads are consuming capital without sufficient verified value. Use the three executive orders on screen to contain margin leakage, preserve verified value, and return expired authority to accountable executives. You can issue the orders, ask the Capital Chief of Staff for strategic advice, or navigate to Contracts, Market, Shock Lab, and Evidence using the rail on the left.',
+  contracts: 'You are now viewing the executable capital contracts. Each of the five AI workloads — Research Copilot, Fraud Sentinel, Client Service Agent, Treasury Forecasting, and Marketing Studio — operates under a binding capital contract. Select any contract from the list on the left to inspect its seal status, accountable parties, value and quality metrics, cure conditions, and return authority clauses. Contracts with a breach or expired seal require immediate executive attention.',
+  market: 'This is the capital market view. Here you can run the capital auction to allocate funding across competing workloads based on their verified value-to-cost ratios. The efficient frontier chart shows the optimal balance between quality and cost. Review the portfolio constitution to understand the four binding rules that govern every capital decision. Click Run Auction to see which workloads receive funding and which are rejected.',
+  shock: 'Welcome to the Margin Shock Lab. Use the six scenario sliders on the left to stress-test how changes in users, interaction volume, premium model routing, retry rates, pricing, and review time affect the portfolio margin. Watch the output panel update in real time. When a scenario pushes the margin into breach territory, apply the cure protocol to see the recommended recovery path and its effect on the margin curve.',
+  evidence: 'You are viewing the evidence record — the complete audit trail of every capital decision. Select any evidence receipt on the left to see the full decision record, including the authority level, evidence basis, action taken, risk accepted, quality boundary, and reconsideration terms. Use the export button to download a board-grade record, or ask the Capital Chief to test whether the evidence is defensible.'
+};
 function narrateView(viewId) {
-  const section = $(`#view-${viewId}`);
-  if (!section) return;
-  const heading = section.querySelector('h1,h2,.eyebrow')?.textContent || 'Capital Constitution';
-  const lede = section.querySelector('.hero-deck,p')?.textContent || '';
-  narrateText(heading + '. ' + lede);
+  const text = VIEW_NARRATION[viewId];
+  if (text) narrateText(text);
 }
 // simple narrate for direct text (hear brief, speak last)
 function narrate(text) { if (text) narrateText(text); }
@@ -437,7 +441,7 @@ function bindEvents() {
     $('#chiefQuestion').focus();
   }));
 
-  $('#hearBrief').addEventListener('click', () => narrate('Executive capital brief. Meridian Global is inside its annual AI budget but outside its economic constitution. Three workloads require action. Contain Research Copilot margin leakage. Protect Fraud Sentinel funding. Return expired capital authority to accountable executives.'));
+  $('#hearBrief').addEventListener('click', () => narrateView(state.currentView));
   $('#speakLast').addEventListener('click', () => narrate(state.lastChiefAnswer || $('.message.assistant p').textContent));
 
   // narrate toggle: click while playing stops, otherwise starts
