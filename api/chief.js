@@ -51,7 +51,7 @@ export default async function handler(req, res) {
           { role: 'system', content: SYSTEM_PROMPT },
           { role: 'user', content: `PORTFOLIO CONTEXT\n${JSON.stringify(context || {}, null, 2)}\n\nEXECUTIVE QUESTION\n${question}` }
         ],
-        temperature: 0.7
+        store: false
       })
     });
 
