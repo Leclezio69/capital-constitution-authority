@@ -79,6 +79,7 @@ function setView(view) {
   state.currentView = view;
   $$('.nav-button').forEach(button => button.classList.toggle('active', button.dataset.view === view));
   $$('.view').forEach(panel => panel.classList.toggle('active', panel.dataset.viewPanel === view));
+  $$('#mobileMenu [data-view]').forEach(btn => btn.classList.toggle('active', btn.dataset.view === view));
   if (location.protocol.startsWith('http')) history.replaceState(null, '', `/institution/meridian/${view}`);
   window.scrollTo({ top: 0, behavior: 'smooth' });
   stopNarration();
@@ -720,6 +721,26 @@ p code,li code{font-family:'IBM Plex Mono',monospace;font-size:10px;background:#
 function bindEvents() {
   $$('.nav-button').forEach(button => button.addEventListener('click', () => setView(button.dataset.view)));
   $$('[data-jump]').forEach(button => button.addEventListener('click', () => setView(button.dataset.jump)));
+
+  // hamburger mobile menu
+  const hamburger = $('#hamburger');
+  const mobileMenu = $('#mobileMenu');
+  hamburger.addEventListener('click', () => {
+    hamburger.classList.toggle('open');
+    mobileMenu.classList.toggle('open');
+  });
+  $$('[data-view]', mobileMenu).forEach(btn => {
+    btn.addEventListener('click', () => {
+      setView(btn.dataset.view);
+      hamburger.classList.remove('open');
+      mobileMenu.classList.remove('open');
+      // update active state
+      $$('[data-view]', mobileMenu).forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+    });
+  });
+  // mark initial active
+  $('[data-view="command"]', mobileMenu)?.classList.add('active');
   $$('.table-row[data-contract]').forEach(button => button.addEventListener('click', () => { setView('contracts'); renderContract(button.dataset.contract); }));
   $$('.contract-card').forEach(button => button.addEventListener('click', () => renderContract(button.dataset.contractCard)));
   $$('.receipt').forEach(button => button.addEventListener('click', () => renderReceipt(button.dataset.receipt)));
