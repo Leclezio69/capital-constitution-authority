@@ -81,6 +81,12 @@ function setView(view) {
   $$('.view').forEach(panel => panel.classList.toggle('active', panel.dataset.viewPanel === view));
   if (location.protocol.startsWith('http')) history.replaceState(null, '', `/institution/meridian/${view}`);
   window.scrollTo({ top: 0, behavior: 'smooth' });
+  stopNarration();
+  updateGuide(view);
+  if (autoNarrate && view !== lastNarratedView) {
+    lastNarratedView = view;
+    setTimeout(() => narrateView(view), 400);
+  }
 }
 
 function openChief(question = '') {
@@ -157,31 +163,115 @@ async function askChief(question) {
   }
 }
 
-async function narrate(text) {
-  if (!text) return;
-  try {
-    const response = await fetch('/api/narrate', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ text })
-    });
-    if (response.ok && response.headers.get('content-type')?.includes('audio')) {
-      const blob = await response.blob();
-      const audio = new Audio(URL.createObjectURL(blob));
-      await audio.play();
-      return;
-    }
-  } catch (_) {}
-
-  if ('speechSynthesis' in window) {
-    speechSynthesis.cancel();
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.rate = 0.94;
-    utterance.pitch = 0.9;
-    speechSynthesis.speak(utterance);
-    showToast('Browser narration active · configure ElevenLabs for your cloned voice');
-  } else {
-    showToast('Narration is not available in this browser');
-  }
+// ── instruction guide banner ──
+const GUIDE = {
+  command: { what: 'Review the institutional capital position and execute binding orders.', when: 'This is the default command view.', how: 'Read the executive order, review portfolio health, then execute capital orders or ask the Capital Chief.', next: 'Contracts — inspect each AI workload\'s executable capital contract.' },
+  contracts: { what: 'Inspect executable capital contracts for each AI workload.', when: 'After reviewing the command position.', how: 'Select a contract from the list. Review seal status, parties, clauses, cure conditions, and return authority.', next: 'Market — the capital auction and economic frontier.' },
+  market: { what: 'Run the capital auction and review the economic frontier.', when: 'After inspecting contracts.', how: 'Run the auction to allocate funding. Review the frontier chart and portfolio constitution.', next: 'Shock Lab — stress-test margin scenarios.' },
+  shock: { what: 'Stress-test margin scenarios and apply cure protocols.', when: 'After reviewing the capital market.', how: 'Adjust the scenario sliders to model margin shocks. Apply the cure to see recovery paths.', next: 'Evidence — the complete audit trail.' },
+  evidence: { what: 'Review the complete evidence record and board-grade audit trail.', when: 'After stress-testing scenarios.', how: 'Select evidence receipts to review decision records. Export the board record or ask the Capital Chief to test defensibility.', next: 'Command — return to the executive position.' }
+};
+let currentViewId = 'command';
+function updateGuide(id) {
+  currentViewId = id;
+  const g = GUIDE[id];
+  if (!g) { $('#guide-bar').classList.remove('visible'); return; }
+  $('#guide-bar').innerHTML =
+    `<span class="guide-seg"><span class="gl">Do</span> ${g.what}</span>` +
+    `<span class="guide-seg"><span class="gl">When</span> ${g.when}</span>` +
+    `<span class="guide-seg"><span class="gl">How</span> ${g.how}</span>` +
+    `<span class="guide-seg gn"><span class="gl">Next</span> ${g.next}</span>`;
+  $('#guide-bar').classList.add('visible');
 }
+
+// ── transcript bar ──
+const trBar = $('#transcript-bar'), trWords = $('#tr-words');
+let trActive = false, trWordEls = [], trCurrentIdx = -1, trAnimFrame = 0;
+function trShow(words) {
+  trBar.classList.add('active'); trActive = true;
+  trWords.innerHTML = words.map(w => `<span class="tw">${w}</span>`).join('');
+  trWordEls = $$('.tw', trWords); trCurrentIdx = -1;
+}
+function trHighlight(idx) {
+  if (idx < 0 || idx >= trWordEls.length) return;
+  trWordEls.forEach((el, i) => {
+    el.classList.remove('current', 'near');
+    if (i === idx) el.classList.add('current');
+    else if (Math.abs(i - idx) <= 3) el.classList.add('near');
+  });
+  trCurrentIdx = idx;
+  const el = trWordEls[idx], container = trWords.parentElement;
+  const offset = el.offsetLeft + el.offsetWidth / 2 - container.offsetWidth / 2;
+  trWords.style.transform = `translateX(${-offset}px)`;
+  trWords.style.transition = 'transform .18s ease';
+}
+function trHide() { trBar.classList.remove('active'); trActive = false; trWords.innerHTML = ''; trCurrentIdx = -1; }
+
+// ── narration engine with transcript ──
+let autoNarrate = false, lastNarratedView = '', narrating = false, activeAudio = null, narGeneration = 0, narAbort = null, activeUtterance = null;
+function stopNarration() {
+  narGeneration++;
+  if ('speechSynthesis' in window) speechSynthesis.cancel();
+  activeUtterance = null;
+  clearTimeout(trAnimFrame);
+  if (narAbort) { try { narAbort.abort(); } catch (_) {} narAbort = null; }
+  if (activeAudio) { try { activeAudio.pause(); activeAudio.currentTime = 0; activeAudio.src = ''; } catch (_) {} activeAudio = null; }
+  narrating = false; trHide();
+}
+function narrateText(text, cb) {
+  stopNarration(); narrating = true;
+  const gen = narGeneration;
+  const words = text.split(/\s+/).filter(w => w.length > 0);
+  trShow(words);
+  narAbort = new AbortController();
+  fetch('/api/narrate', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ text }), signal: narAbort.signal })
+    .then(res => { if (!res.ok) throw new Error(); return res.blob(); })
+    .then(blob => {
+      if (gen !== narGeneration) return;
+      const audio = new Audio(URL.createObjectURL(blob));
+      activeAudio = audio;
+      const duration = words.length * 0.28;
+      audio.onplay = () => {
+        let i = 0;
+        const step = () => {
+          if (gen !== narGeneration || !trActive || i >= words.length) { if (gen === narGeneration) { narrating = false; activeAudio = null; setTimeout(trHide, 800); } return; }
+          trHighlight(i); i++;
+          const interval = (audio.duration || duration) / words.length * 1000;
+          trAnimFrame = setTimeout(step, interval);
+        }; step();
+      };
+      audio.onended = () => { if (gen !== narGeneration) return; clearTimeout(trAnimFrame); narrating = false; activeAudio = null; if (cb) cb(); setTimeout(trHide, 1200); };
+      audio.onerror = () => { if (gen !== narGeneration) return; narrating = false; activeAudio = null; trHide(); narrateBrowser(text, words, cb, gen); };
+      audio.play().catch(() => { if (gen !== narGeneration) return; narrating = false; activeAudio = null; trHide(); });
+    })
+    .catch(e => { if (gen !== narGeneration || e.name === 'AbortError') return; narrating = false; narrateBrowser(text, words, cb, gen); });
+}
+function narrateBrowser(text, words, cb, gen) {
+  if (gen === undefined) gen = narGeneration;
+  if (!('speechSynthesis' in window) || gen !== narGeneration) { trHide(); return; }
+  speechSynthesis.cancel();
+  setTimeout(() => {
+    if (gen !== narGeneration) return;
+    narrating = true; trShow(words);
+    const u = new SpeechSynthesisUtterance(text); u.rate = 0.88; u.pitch = 0.86;
+    activeUtterance = u;
+    let wordIdx = 0;
+    u.onboundary = e => { if (gen !== narGeneration) { speechSynthesis.cancel(); return; } if (e.name === 'word') { trHighlight(wordIdx); wordIdx++; } };
+    u.onend = () => { if (gen !== narGeneration) return; narrating = false; activeUtterance = null; if (cb) cb(); setTimeout(trHide, 1200); };
+    u.onerror = () => { if (gen !== narGeneration) return; narrating = false; activeUtterance = null; trHide(); };
+    speechSynthesis.speak(u);
+    showToast('Browser narration active · configure ElevenLabs for your cloned voice');
+  }, 50);
+}
+function narrateView(viewId) {
+  const section = $(`#view-${viewId}`);
+  if (!section) return;
+  const heading = section.querySelector('h1,h2,.eyebrow')?.textContent || 'Capital Constitution';
+  const lede = section.querySelector('.hero-deck,p')?.textContent || '';
+  narrateText(heading + '. ' + lede);
+}
+// simple narrate for direct text (hear brief, speak last)
+function narrate(text) { if (text) narrateText(text); }
 
 function renderContract(key) {
   const contract = state.contracts[key];
@@ -350,6 +440,20 @@ function bindEvents() {
   $('#hearBrief').addEventListener('click', () => narrate('Executive capital brief. Meridian Global is inside its annual AI budget but outside its economic constitution. Three workloads require action. Contain Research Copilot margin leakage. Protect Fraud Sentinel funding. Return expired capital authority to accountable executives.'));
   $('#speakLast').addEventListener('click', () => narrate(state.lastChiefAnswer || $('.message.assistant p').textContent));
 
+  // narrate toggle: click while playing stops, otherwise starts
+  $('#narrate-btn').addEventListener('click', () => {
+    if (narrating) { stopNarration(); return; }
+    narrateView(state.currentView);
+  });
+  // auto-narrate toggle
+  $('#auto-narrate-btn').addEventListener('click', () => {
+    autoNarrate = !autoNarrate;
+    $('#auto-narrate-btn').classList.toggle('auto-on', autoNarrate);
+    showToast(autoNarrate ? 'Auto narration on' : 'Auto narration off');
+    if (autoNarrate) { lastNarratedView = state.currentView; narrateView(state.currentView); }
+    else { stopNarration(); }
+  });
+
   $('#executeOrders').addEventListener('click', () => {
     if (state.ordersIssued) return showToast('Orders already in force · receipts recorded');
     state.ordersIssued = true;
@@ -406,6 +510,7 @@ function init() {
   setInterval(updateClock, 30000);
   bindEvents();
   calculateScenario();
+  updateGuide(state.currentView);
   setTimeout(() => $('#boot').classList.add('hide'), 900);
 }
 
