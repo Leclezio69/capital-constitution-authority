@@ -146,91 +146,107 @@ function addMessage(role, text, isMarkdown = false) {
   return node;
 }
 
-// ── contract builder state machine ──
-const CONTRACT_FIELDS = [
-  { key: 'title', label: 'Workload Name', prompt: 'What is the name of the new AI workload?' },
-  { key: 'subtitle', label: 'Description', prompt: 'Provide a one-line description of what this workload does.' },
-  { key: 'owner', label: 'Capital Owner', prompt: 'Who is the accountable capital owner (name and role)?' },
-  { key: 'risk', label: 'Risk Officer', prompt: 'Who is the risk officer responsible for this workload?' },
-  { key: 'ceiling', label: 'Budget Ceiling', prompt: 'What is the annualized budget ceiling (e.g. $5.0M annualized)?' },
-  { key: 'value', label: 'Value-to-Cost Target', prompt: 'What is the minimum value-to-cost ratio target (e.g. 1.50×)?' },
-  { key: 'quality', label: 'Quality Floor', prompt: 'What is the quality floor percentage (e.g. 90%)?' },
-  { key: 'model', label: 'Model Dependency Limit', prompt: 'What is the maximum premium-model dependency (e.g. 25%)?' },
-  { key: 'cure', label: 'Cure Condition', prompt: 'What should happen automatically if the workload breaches its boundaries? Describe the cure condition.' },
-  { key: 'return', label: 'Return Authority', prompt: 'What decisions must return to human authority? Who must approve exceptions?' }
-];
-let contractBuilder = null;
+// ── contract actions ──
+const CONTRACT_ACTIONS = {
+  BREACH: [
+    { label: 'ENFORCE CURE', className: 'action-primary', action: 'cure' },
+    { label: 'ASK CHIEF', className: '', action: 'ask' }
+  ],
+  CURE: [
+    { label: 'SEAL CONTRACT', className: 'action-primary', action: 'seal' },
+    { label: 'ASK CHIEF', className: '', action: 'ask' }
+  ],
+  EXPIRED: [
+    { label: 'RENEW CONTRACT', className: 'action-primary', action: 'renew' },
+    { label: 'TERMINATE', className: 'action-danger', action: 'terminate' }
+  ],
+  VERIFIED: [],
+  DRAFT: [
+    { label: 'SEAL CONTRACT', className: 'action-primary', action: 'seal' }
+  ]
+};
+let activeContractKey = 'research';
 
-function startContractBuilder() {
-  contractBuilder = { fields: {}, step: 0 };
-  openChief();
-  addMessage('assistant', `## New Capital Contract — CC-006\n\nI will walk you through **${CONTRACT_FIELDS.length} required fields** to issue a new executable capital contract.\n\n### Field 1 of ${CONTRACT_FIELDS.length} — ${CONTRACT_FIELDS[0].label}\n\n${CONTRACT_FIELDS[0].prompt}`, true);
-}
+function executeContractAction(key, action) {
+  const contract = state.contracts[key];
+  if (!contract) return;
+  const prevSeal = contract.seal;
 
-function advanceContractBuilder(userAnswer) {
-  if (!contractBuilder) return false;
-  const field = CONTRACT_FIELDS[contractBuilder.step];
-  contractBuilder.fields[field.key] = userAnswer;
-  contractBuilder.step++;
-
-  if (contractBuilder.step < CONTRACT_FIELDS.length) {
-    const next = CONTRACT_FIELDS[contractBuilder.step];
-    const progress = contractBuilder.step + 1;
-    const filled = Object.entries(contractBuilder.fields).map(([k, v]) => {
-      const f = CONTRACT_FIELDS.find(f => f.key === k);
-      return `- **${f.label}**: ${v}`;
-    }).join('\n');
-    addMessage('assistant', `### ✓ ${field.label} recorded\n\n${filled}\n\n---\n\n### Field ${progress} of ${CONTRACT_FIELDS.length} — ${next.label}\n\n${next.prompt}`, true);
-    return true;
+  if (action === 'cure') {
+    contract.seal = 'CURE';
+    showToast(`Cure enforced · ${contract.title} moved from BREACH to CURE`);
+  } else if (action === 'seal') {
+    contract.seal = 'VERIFIED';
+    showToast(`Contract sealed · ${contract.title} is now VERIFIED`);
+  } else if (action === 'renew') {
+    contract.seal = 'VERIFIED';
+    contract.expiry = new Date(Date.now() + 365 * 86400000).toLocaleDateString('en-US', { day: '2-digit', month: 'short', year: 'numeric' }).toUpperCase();
+    showToast(`Contract renewed · ${contract.title} expires ${contract.expiry}`);
+  } else if (action === 'terminate') {
+    contract.seal = 'TERMINATED';
+    showToast(`Contract terminated · ${contract.title} removed from active portfolio`);
+  } else if (action === 'ask') {
+    openChief(`Review the ${contract.title} contract. It is currently in ${contract.seal} status. What should I do — enforce the cure, renegotiate terms, or escalate to human authority? Analyze the portfolio impact.`);
+    return;
   }
 
-  // all fields collected — assemble the contract
-  const draft = contractBuilder.fields;
-  const contractKey = 'custom_' + Date.now();
-  const newContract = {
-    code: 'CC-006 · VERSION 1.0',
-    title: draft.title,
-    subtitle: draft.subtitle,
-    seal: 'DRAFT',
-    owner: draft.owner,
-    risk: draft.risk,
-    expiry: new Date(Date.now() + 180 * 86400000).toLocaleDateString('en-US', { day: '2-digit', month: 'short', year: 'numeric' }).toUpperCase(),
-    ceiling: draft.ceiling,
-    value: draft.value,
-    quality: draft.quality,
-    model: draft.model,
-    cure: draft.cure,
-    return: draft.return
+  // update the card in the sidebar
+  const cardEl = $(`.contract-card[data-contract-card="${key}"] em`);
+  if (cardEl) {
+    cardEl.textContent = contract.seal;
+    cardEl.className = 'state';
+    if (contract.seal === 'VERIFIED') cardEl.classList.add('strong');
+    else if (contract.seal === 'CURE') cardEl.classList.add('warning');
+    else if (contract.seal === 'TERMINATED') { cardEl.classList.add('expired'); cardEl.style.textDecoration = 'line-through'; }
+  }
+  const subtitleEl = $(`.contract-card[data-contract-card="${key}"] small`);
+  if (subtitleEl) {
+    if (contract.seal === 'VERIFIED') subtitleEl.textContent = 'Compliant — within all boundaries';
+    else if (contract.seal === 'CURE') subtitleEl.textContent = 'Cure in force — monitoring';
+    else if (contract.seal === 'TERMINATED') subtitleEl.textContent = 'Contract terminated';
+  }
+
+  // create an evidence receipt
+  const receiptId = Object.keys(state.receipts).length + 1;
+  const hash = Math.random().toString(16).slice(2, 6).toUpperCase() + ':' + Math.random().toString(16).slice(2, 6).toUpperCase();
+  state.receipts[receiptId] = {
+    hash,
+    title: `${contract.title} — ${prevSeal} → ${contract.seal}`,
+    summary: `Contract status changed from ${prevSeal} to ${contract.seal} by executive action.`,
+    cells: [
+      ['AUTHORITY', 'Executive action', 'Direct capital authority exercised.'],
+      ['EVIDENCE', 'Contract review', `${contract.title} was in ${prevSeal} status.`],
+      ['ACTION', `Status changed to ${contract.seal}`, `Contract ${key} updated.`],
+      ['RISK ACCEPTED', 'Policy change', 'New status takes immediate effect.'],
+      ['QUALITY BOUNDARY', contract.quality + ' floor', 'Quality covenant unchanged.'],
+      ['RECONSIDERATION', 'Next review cycle', 'Standard evidence review applies.']
+    ]
   };
-  state.contracts[contractKey] = newContract;
 
-  // add card to the contract list
-  const list = $('.contract-list');
-  const card = document.createElement('button');
-  card.className = 'contract-card';
-  card.dataset.contractCard = contractKey;
-  card.innerHTML = `<div class="contract-code">CC-006</div><div><b>${draft.title}</b><small>Draft — pending signatures</small></div><em class="state" style="color:var(--accent)">DRAFT</em>`;
-  card.addEventListener('click', () => renderContract(contractKey));
-  list.appendChild(card);
+  // re-render
+  renderContract(key);
 
-  // update the count
-  const head = $('.contract-list-head span');
-  if (head) head.textContent = '6 ACTIVE INSTRUMENTS';
+  // update breach count in command view
+  const breaches = Object.values(state.contracts).filter(c => ['BREACH', 'EXPIRED', 'CURE'].includes(c.seal)).length;
+  const statusEl = $('.status-amber');
+  if (statusEl) {
+    statusEl.textContent = breaches > 0 ? `${breaches} CAPITAL BREACH${breaches > 1 ? 'ES' : ''}` : 'ALL CONTRACTS COMPLIANT';
+    statusEl.style.color = breaches > 0 ? '' : 'var(--good)';
+  }
+}
 
-  // show completion message
-  const summary = CONTRACT_FIELDS.map(f => `| ${f.label} | ${contractBuilder.fields[f.key]} |`).join('\n');
-  addMessage('assistant', `## ✓ Contract CC-006 Issued\n\n**${draft.title}** has been added to the portfolio as a **DRAFT** instrument.\n\n| Field | Value |\n|-------|-------|\n${summary}\n\n### Next Steps\n\n- Close this panel and open **Contracts** to review the full instrument\n- The contract requires executive signatures before it moves from DRAFT to VERIFIED\n- The cure condition and return authority are now enforceable`, true);
-
-  showToast(`Contract CC-006 issued · ${draft.title} added to portfolio`);
-
-  // switch to contracts view and render the new contract
-  setTimeout(() => {
-    setView('contracts');
-    renderContract(contractKey);
-  }, 1500);
-
-  contractBuilder = null;
-  return true;
+function renderContractActions(key) {
+  const contract = state.contracts[key];
+  const actionsEl = $('#contractActions');
+  if (!contract || !actionsEl) return;
+  activeContractKey = key;
+  const actions = CONTRACT_ACTIONS[contract.seal] || [];
+  actionsEl.innerHTML = actions.map(a =>
+    `<button class="${a.className}" data-contract-action="${a.action}">${a.label}</button>`
+  ).join('');
+  $$('[data-contract-action]', actionsEl).forEach(btn => {
+    btn.addEventListener('click', () => executeContractAction(key, btn.dataset.contractAction));
+  });
 }
 
 function portfolioContext() {
@@ -257,10 +273,6 @@ function portfolioContext() {
 
 async function askChief(question) {
   addMessage('user', question);
-  // if contract builder is active, capture the answer as a field
-  if (contractBuilder) {
-    if (advanceContractBuilder(question)) return;
-  }
   const loading = addMessage('assistant', 'Reading the portfolio record and testing the economic boundary…');
   try {
     const response = await fetch('/api/chief', {
@@ -428,10 +440,11 @@ function renderContract(key) {
   };
   Object.entries(fields).forEach(([selector, value]) => { $(selector).textContent = value; });
   const seal = $('.instrument-seal');
-  const sealColor = contract.seal === 'VERIFIED' ? 'var(--good)' : contract.seal === 'CURE' ? 'var(--warn)' : contract.seal === 'EXPIRED' ? 'var(--muted)' : contract.seal === 'DRAFT' ? 'var(--accent)' : 'var(--bad)';
+  const sealColor = contract.seal === 'VERIFIED' ? 'var(--good)' : contract.seal === 'CURE' ? 'var(--warn)' : contract.seal === 'EXPIRED' ? 'var(--muted)' : contract.seal === 'DRAFT' ? 'var(--accent)' : contract.seal === 'TERMINATED' ? 'var(--faint)' : 'var(--bad)';
   seal.style.borderColor = sealColor;
   $('#contractSeal').style.color = sealColor;
   $$('.contract-card').forEach(card => card.classList.toggle('active', card.dataset.contractCard === key));
+  renderContractActions(key);
 }
 
 function renderReceipt(id) {
@@ -619,17 +632,60 @@ function bindEvents() {
 
   $('#governorSwitch').addEventListener('change', event => showToast(event.target.checked ? 'Autonomous governor enabled within Level 3 boundary' : 'Governor paused · recommendations remain active'));
   $('#reviewAuthority').addEventListener('click', () => openChief('Review the current autonomous authority boundary. What can the governor do, what must return to human authority, and where is the greatest control gap?'));
-  $('#newContract').addEventListener('click', () => startContractBuilder());
+  $('#newContract').addEventListener('click', () => {
+    const breached = Object.entries(state.contracts).filter(([_, c]) => c.seal === 'BREACH').map(([_, c]) => c.title);
+    const expired = Object.entries(state.contracts).filter(([_, c]) => c.seal === 'EXPIRED').map(([_, c]) => c.title);
+    const curing = Object.entries(state.contracts).filter(([_, c]) => c.seal === 'CURE').map(([_, c]) => c.title);
+    const summary = [
+      breached.length ? `Breached: ${breached.join(', ')}` : '',
+      expired.length ? `Expired: ${expired.join(', ')}` : '',
+      curing.length ? `In cure: ${curing.join(', ')}` : ''
+    ].filter(Boolean).join('. ');
+    openChief(summary ? `These contracts need attention: ${summary}. What is the priority order and what action should I take on each?` : 'All contracts are compliant. Should I adjust any terms, tighten quality floors, or prepare for the next review cycle?');
+  });
   $('#testRecord').addEventListener('click', () => openChief('Test whether the current evidence record is board-defensible. Identify the strongest record, the weakest record, and the first question a regulator would ask.'));
 
   $('#runAuction').addEventListener('click', () => {
-    const cards = $$('.auction-card');
-    cards.forEach((card, index) => {
+    // dynamic auction based on current contract states
+    const auctionData = [
+      { key: 'fraud', name: 'Fraud Sentinel — Expansion', bid: 2.4, vtc: 3.84, conf: 'High confidence · regulatory value' },
+      { key: 'treasury', name: 'Treasury Forecasting — Europe', bid: 1.6, vtc: 2.26, conf: 'Medium-high confidence · reversible' },
+      { key: 'research', name: 'Research Copilot — Margin Cure', bid: 1.1, vtc: 0.82, conf: 'Conditional · evidence required' },
+      { key: 'service', name: 'Client Service Agent — Languages', bid: 1.3, vtc: 1.12, conf: 'Low confidence · retry leakage' },
+      { key: 'marketing', name: 'Marketing Studio — Video', bid: 2.8, vtc: 0.64, conf: 'Attribution absent · irreversible spend' }
+    ];
+    // determine auction result based on contract seal status
+    let funded = 0, conditional = 0, held = 0;
+    const results = auctionData.map(item => {
+      const seal = state.contracts[item.key]?.seal || 'EXPIRED';
+      let result, cls = '';
+      if (seal === 'VERIFIED') { result = 'FUND'; funded += item.bid; }
+      else if (seal === 'CURE') { result = 'CONDITIONAL'; conditional += item.bid; cls = ''; }
+      else if (seal === 'BREACH') { result = 'HOLD'; held += item.bid; }
+      else if (seal === 'TERMINATED') { result = 'REMOVED'; cls = 'rejected'; }
+      else { result = 'REJECT'; cls = 'rejected'; }
+      return { ...item, result, cls };
+    });
+    // sort: FUND first, then CONDITIONAL, HOLD, REJECT, REMOVED
+    const order = { FUND: 0, CONDITIONAL: 1, HOLD: 2, REJECT: 3, REMOVED: 4 };
+    results.sort((a, b) => order[a.result] - order[b.result]);
+
+    const stack = $('#auctionStack');
+    stack.innerHTML = results.map((r, i) => `
+      <div class="auction-card ${r.cls}" data-rank="${i + 1}">
+        <span class="rank">${String(i + 1).padStart(2, '0')}</span>
+        <div><b>${r.name}</b><small>${r.conf}</small></div>
+        <div class="bid"><b>$${r.bid.toFixed(1)}M</b><span>${r.vtc.toFixed(2)}×</span></div>
+        <em>${r.result}</em>
+      </div>`).join('');
+
+    // animate in
+    $$('.auction-card', stack).forEach((card, i) => {
       card.style.transform = 'translateX(-12px)';
       card.style.opacity = '.25';
-      setTimeout(() => { card.style.transform = 'translateX(0)'; card.style.opacity = card.classList.contains('rejected') ? '.45' : '1'; }, 130 * index);
+      setTimeout(() => { card.style.transform = 'translateX(0)'; card.style.opacity = card.classList.contains('rejected') ? '.45' : '1'; }, 130 * i);
     });
-    showToast('$4.0M funded · $1.1M conditional · $1.6M retained');
+    showToast(`$${funded.toFixed(1)}M funded · $${conditional.toFixed(1)}M conditional · $${held.toFixed(1)}M held`);
   });
 
   const rangeIds = ['usersRange','interactionsRange','premiumRange','retryRange','priceRange','reviewRange'];

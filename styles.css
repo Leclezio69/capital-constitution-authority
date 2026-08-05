@@ -27,6 +27,12 @@ button,input,textarea{font:inherit}.noise{position:fixed;inset:0;pointer-events:
 #guide-bar::-webkit-scrollbar{display:none}
 #guide-bar.visible{opacity:1;transform:none;pointer-events:auto}
 .guide-seg{display:flex;gap:5px;align-items:center;white-space:nowrap}.guide-seg .gl{color:var(--accent);font-weight:500;text-transform:uppercase;letter-spacing:.13em}.guide-seg.gn .gl{color:var(--good)}
+/* contract actions */
+.contract-actions{display:flex;gap:10px;padding:18px 28px;border-top:1px solid var(--line)}.contract-actions:empty{display:none}
+.contract-actions button{flex:1;padding:14px 16px;border:1px solid var(--line2);background:transparent;color:var(--text);font:700 9px/1 ui-monospace,monospace;letter-spacing:.1em;cursor:pointer;border-radius:3px;transition:.25s}
+.contract-actions .action-primary{background:var(--accent);color:#14110b;border-color:var(--accent)}
+.contract-actions .action-danger{border-color:var(--bad);color:var(--bad)}
+.contract-actions button:hover{opacity:.85}
 /* draft contract seal */
 .state.draft{color:var(--accent)}
 /* pulse animation for CTA buttons */
