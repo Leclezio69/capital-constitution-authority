@@ -7,9 +7,7 @@
     }
   },
   "rewrites": [
-    { "source": "/institution/:path*/:sub*", "destination": "/index.html" },
-    { "source": "/institution/:path*", "destination": "/index.html" },
-    { "source": "/command/:path*", "destination": "/index.html" }
+    { "source": "/((?!api/).*)", "destination": "/index.html" }
   ],
   "headers": [
     {
